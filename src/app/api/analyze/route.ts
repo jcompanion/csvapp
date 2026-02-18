@@ -4,7 +4,15 @@ import { analyzeCsvWithGemini } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
     const { csvString } = body;
 
     if (!csvString || typeof csvString !== "string") {

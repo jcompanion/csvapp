@@ -76,8 +76,18 @@ function StatusBadge({
     "in progress": "bg-blue-500/15 text-blue-400 border-blue-500/30",
     pending: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
     open: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+    reviewed: "bg-green-500/15 text-green-400 border-green-500/30",
+    "closed won": "bg-green-500/15 text-green-400 border-green-500/30",
+    negotiation: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+    "proposal sent": "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+    discovery: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+    "in review": "bg-orange-500/15 text-orange-400 border-orange-500/30",
+    todo: "bg-neutral-500/15 text-neutral-300 border-neutral-500/30",
+    backlog: "bg-neutral-500/15 text-neutral-500 border-neutral-500/30",
+    critical: "bg-red-500/15 text-red-400 border-red-500/30",
     cancelled: "bg-red-500/15 text-red-400 border-red-500/30",
     failed: "bg-red-500/15 text-red-400 border-red-500/30",
+    "closed lost": "bg-red-500/15 text-red-400 border-red-500/30",
     closed: "bg-neutral-500/15 text-neutral-400 border-neutral-500/30",
   };
 
@@ -109,7 +119,7 @@ function StatusBadge({
   );
 }
 
-function ChartCard({ chart, data, accentColor }: { chart: ChartConfig; data: Record<string, string>[]; accentColor: string }) {
+function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; data: Record<string, string>[]; accentColor: string; index: number }) {
   // Aggregate data for charts
   const chartData = useMemo(() => {
     if (chart.type === "pie") {
@@ -140,7 +150,9 @@ function ChartCard({ chart, data, accentColor }: { chart: ChartConfig; data: Rec
     }));
   }, [chart, data]);
 
-  const color = chart.color || accentColor;
+  // Always use bright colors — ignore Gemini's suggestions (often too dark for dark mode)
+  const color = CHART_COLORS[index % CHART_COLORS.length];
+  const tooltipStyle = { backgroundColor: "#1a1a2e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#fff" };
 
   return (
     <Card>
@@ -153,27 +165,31 @@ function ChartCard({ chart, data, accentColor }: { chart: ChartConfig; data: Rec
         <ResponsiveContainer width="100%" height={250}>
           {chart.type === "bar" ? (
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-              <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }} stroke="rgba(255,255,255,0.1)" />
+              <YAxis tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }} stroke="rgba(255,255,255,0.1)" />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {chartData.map((_, i) => (
+                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                ))}
+              </Bar>
             </BarChart>
           ) : chart.type === "line" ? (
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }} stroke="rgba(255,255,255,0.1)" />
+              <YAxis tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }} stroke="rgba(255,255,255,0.1)" />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ fill: color, r: 3 }} activeDot={{ r: 5, fill: color }} />
             </LineChart>
           ) : chart.type === "area" ? (
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-              <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-              <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.1} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }} stroke="rgba(255,255,255,0.1)" />
+              <YAxis tick={{ fontSize: 12, fill: "rgba(255,255,255,0.5)" }} stroke="rgba(255,255,255,0.1)" />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.15} strokeWidth={2} />
             </AreaChart>
           ) : (
             <PieChart>
@@ -294,7 +310,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
       {config.charts.length > 0 && (
         <div className={`grid gap-4 ${config.charts.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
           {config.charts.map((chart, i) => (
-            <ChartCard key={i} chart={chart} data={data.rows} accentColor={config.accentColor} />
+            <ChartCard key={i} chart={chart} data={data.rows} accentColor={config.accentColor} index={i} />
           ))}
         </div>
       )}
