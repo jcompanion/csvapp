@@ -1,0 +1,16 @@
+company,deal_size,stage,rep,close_date,industry
+Acme Corp,45000,Negotiation,Sarah Chen,2026-03-15,Technology
+GlobalTech,120000,Proposal Sent,Mike Rivera,2026-04-01,Finance
+StartupXYZ,18000,Discovery,Sarah Chen,2026-03-28,SaaS
+MegaRetail,85000,Closed Won,Jake Torres,2026-02-10,Retail
+DataFlow Inc,62000,Negotiation,Lisa Park,2026-03-20,Technology
+CloudNine,34000,Discovery,Mike Rivera,2026-04-15,SaaS
+BrightHealth,95000,Proposal Sent,Jake Torres,2026-03-30,Healthcare
+NovaPay,150000,Closed Won,Sarah Chen,2026-02-05,Finance
+FreshFoods,28000,Closed Lost,Lisa Park,2026-02-20,Retail
+AIVentures,72000,Negotiation,Jake Torres,2026-04-10,Technology
+SecureNet,55000,Proposal Sent,Sarah Chen,2026-03-25,Cybersecurity
+QuickShip,41000,Discovery,Mike Rivera,2026-04-20,Logistics
+PixelStudio,23000,Closed Won,Lisa Park,2026-02-15,Creative
+EduLearn,67000,Negotiation,Jake Torres,2026-03-18,Education
+GreenEnergy,110000,Proposal Sent,Mike Rivera,2026-04-05,Energy

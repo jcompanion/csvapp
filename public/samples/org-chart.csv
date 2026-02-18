@@ -1,0 +1,13 @@
+name,title,department,reports_to,location,bio
+Maria Garcia,CEO,Executive,,Austin TX,Founded the company in 2019. Former VP at Stripe.
+James Wright,CTO,Engineering,Maria Garcia,Austin TX,15 years in distributed systems. Built infra at Netflix.
+Priya Patel,VP Product,Product,Maria Garcia,New York NY,Led product at two YC startups. Passionate about user research.
+David Kim,VP Sales,Sales,Maria Garcia,Chicago IL,Grew ARR from $1M to $12M in 18 months.
+Rachel Torres,Engineering Manager,Engineering,James Wright,Austin TX,Manages the platform team. Rust enthusiast.
+Alex Chen,Senior Engineer,Engineering,James Wright,Remote,Full-stack. Built the real-time pipeline from scratch.
+Sophie Martin,Designer,Product,Priya Patel,New York NY,Design systems lead. Previously at Figma.
+Omar Hassan,PM,Product,Priya Patel,New York NY,Owns the enterprise product line.
+Jenny Liu,Account Executive,Sales,David Kim,Chicago IL,Top performer 3 quarters running. Closed MegaRetail deal.
+Marcus Brown,SDR,Sales,David Kim,Remote,Books 40+ meetings per month. LinkedIn wizard.
+Kai Nakamura,DevOps,Engineering,Rachel Torres,Austin TX,Kubernetes and observability. On-call hero.
+Emma Wilson,Frontend Engineer,Engineering,Rachel Torres,Remote,React specialist. Built the dashboard UI.

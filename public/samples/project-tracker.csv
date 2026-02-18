@@ -1,0 +1,15 @@
+task,assignee,priority,status,due_date,estimated_hours,actual_hours
+Landing page redesign,Sophie,High,Complete,2026-02-10,16,14
+API rate limiting,Alex,Critical,Complete,2026-02-08,8,12
+User onboarding flow,Omar,High,In Progress,2026-02-25,24,10
+Dark mode support,Emma,Medium,In Progress,2026-02-28,12,4
+Stripe integration,Rachel,Critical,In Progress,2026-02-20,20,15
+Mobile responsive fix,Emma,High,Todo,2026-03-05,8,0
+Analytics dashboard,Alex,Medium,Todo,2026-03-10,32,0
+Email notifications,Kai,Low,Todo,2026-03-15,6,0
+SSO login,Rachel,High,In Review,2026-02-22,16,14
+Export to PDF,Sophie,Medium,In Review,2026-02-24,10,9
+Performance audit,Kai,High,Todo,2026-03-01,12,0
+Bulk import feature,Alex,Medium,Backlog,2026-03-20,20,0
+Customer portal v2,Omar,High,Backlog,2026-03-25,40,0
+Webhook system,Rachel,Medium,Backlog,2026-04-01,24,0

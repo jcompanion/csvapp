@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CsvUpload } from "@/components/csv-upload";
 import { DashboardView } from "@/components/dashboard-view";
-import { FileSpreadsheet, Zap, Share2, MousePointerClick } from "lucide-react";
+import { FileSpreadsheet, Zap, Share2, MousePointerClick, BarChart3, Users, DollarSign, ListChecks, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [result, setResult] = useState<{ config: any; data: any } | null>(null);
@@ -53,6 +54,47 @@ export default function Home() {
 
         {/* Upload */}
         <CsvUpload onAnalyzed={setResult} />
+
+        {/* Sample Data */}
+        <div className="mt-10">
+          <p className="text-sm text-muted-foreground text-center mb-3">
+            No CSV handy? Try a sample:
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {[
+              { name: "Sales Pipeline", file: "sales-pipeline.csv", icon: BarChart3 },
+              { name: "Org Chart", file: "org-chart.csv", icon: Users },
+              { name: "Monthly Finances", file: "monthly-finances.csv", icon: DollarSign },
+              { name: "Project Tracker", file: "project-tracker.csv", icon: ListChecks },
+              { name: "Customer Feedback", file: "customer-feedback.csv", icon: MessageSquare },
+            ].map((sample) => (
+              <Button
+                key={sample.file}
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={async () => {
+                  const res = await fetch(`/samples/${sample.file}`);
+                  const text = await res.text();
+                  const file = new File([text], sample.file, { type: "text/csv" });
+                  // Trigger the upload flow
+                  const analyzeRes = await fetch("/api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ csvString: text }),
+                  });
+                  if (analyzeRes.ok) {
+                    const result = await analyzeRes.json();
+                    setResult(result);
+                  }
+                }}
+              >
+                <sample.icon className="h-3.5 w-3.5" />
+                {sample.name}
+              </Button>
+            ))}
+          </div>
+        </div>
 
         {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">

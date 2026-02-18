@@ -1,0 +1,13 @@
+date,customer,rating,category,feedback,status
+2026-02-15,Sarah M.,5,UX,Love the new dashboard! So much cleaner than before.,Reviewed
+2026-02-14,John D.,2,Performance,App is really slow when loading large datasets. Please fix.,Open
+2026-02-14,Lisa K.,4,Feature Request,Would love to see dark mode. Otherwise great product!,In Progress
+2026-02-13,Mike R.,1,Bug,Export function is broken. Downloaded file is empty every time.,Critical
+2026-02-13,Anna W.,5,Support,Your support team is amazing. Got a reply in 10 minutes.,Reviewed
+2026-02-12,Chris P.,3,Pricing,Good product but a bit expensive for solo freelancers.,Open
+2026-02-12,Emma T.,4,Feature Request,Can you add team collaboration? Need to share with my VA.,Open
+2026-02-11,David L.,5,UX,Best tool I've used for this. Switched from Airtable.,Reviewed
+2026-02-11,Nina S.,2,Bug,Charts don't render on Safari. Using MacBook Pro.,Critical
+2026-02-10,Tom H.,4,Feature Request,Slack integration would be incredible for notifications.,Backlog
+2026-02-10,Grace F.,3,Performance,Mobile version needs work. Hard to read on phone.,Open
+2026-02-09,Ryan B.,5,UX,The AI insights feature is genuinely useful. Not just a gimmick.,Reviewed
