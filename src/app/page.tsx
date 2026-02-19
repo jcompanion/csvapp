@@ -172,7 +172,7 @@ export default function Home() {
             <span className="font-bold text-lg text-gray-900 dark:text-white">CSVApp</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Pricing</span>
+            <a href="/pricing" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
             <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Docs</span>
             <ThemeToggle />
             <Button
