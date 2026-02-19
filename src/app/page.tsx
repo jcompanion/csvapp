@@ -178,6 +178,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <a href="/pricing" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
+            <a href="/my" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">My Dashboards</a>
             <AuthButton />
             <ThemeToggle />
           </div>
