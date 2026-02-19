@@ -28,6 +28,7 @@ export interface DashboardConfig {
   } | null;
   insights: string[];
   accentColor: string;
+  showTable?: boolean;
 }
 
 const responseSchema = {

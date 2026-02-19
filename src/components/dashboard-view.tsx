@@ -64,6 +64,8 @@ import {
   PieChart as PieIcon,
   TrendingUp as AreaIcon,
   AlignLeft,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { DashboardConfig, ChartConfig } from "@/lib/gemini";
 import { OrgChart } from "@/components/org-chart";
@@ -372,7 +374,7 @@ function renderChartContent(
             {chartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
           </Bar>
         </BarChart>
-      ) : chart.type === "line" ? (
+      ) : (chart.type as string) === "line" ? (
         <LineChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
           <CartesianGrid {...gridProps} />
           <XAxis dataKey="name" {...axisProps} />
@@ -615,7 +617,7 @@ function ChartCard({
   onEdit?: () => void;
   onRemove?: () => void;
 }) {
-  const chart = rawChart.type === "line" ? { ...rawChart, type: "area" as const } : rawChart;
+  const chart = (rawChart.type as string) === "line" ? { ...rawChart, type: "area" as const } : rawChart;
   const color = chart.color || CHART_COLORS[index % CHART_COLORS.length];
 
   const chartData = useMemo(() => buildChartData(chart, data), [chart, data]);
@@ -709,6 +711,19 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
   const [sortCol, setSortCol] = useState<string | null>(config.table.sortBy || null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [overrides, setOverrides] = useState<Record<string, Record<string, string>>>({});
+
+  // Table visibility state — derived from config, synced on config change
+  const [showTable, setShowTable] = useState<boolean>(config.showTable ?? true);
+
+  useEffect(() => {
+    setShowTable(config.showTable ?? true);
+  }, [config.showTable]);
+
+  const handleToggleTable = useCallback(() => {
+    const next = !showTable;
+    setShowTable(next);
+    if (onConfigChange) onConfigChange({ ...config, showTable: next });
+  }, [showTable, config, onConfigChange]);
 
   // Edit mode state
   const [editingChartIndex, setEditingChartIndex] = useState<number | null>(null);
@@ -1011,58 +1026,74 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
       <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-xl chart-animate" style={{ animationDelay: `${(config.charts.length + 2) * 80}ms` }}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-              Data
-              <span className="ml-2 text-xs font-normal text-gray-400">{filteredRows.length} rows{filteredRows.length > 100 ? " (showing first 100)" : ""}</span>
-            </CardTitle>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                <Input placeholder="Search..." className="pl-9 w-[180px] text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
-              </div>
-              <Button variant="outline" size="sm" onClick={handleDownloadPng}><Camera className="h-4 w-4 mr-1" />PNG</Button>
-              <Button variant="outline" size="sm" onClick={handleExportCsv}><Download className="h-4 w-4 mr-1" />Export</Button>
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+                Data
+                {showTable && (
+                  <span className="ml-2 text-xs font-normal text-gray-400">{filteredRows.length} rows{filteredRows.length > 100 ? " (showing first 100)" : ""}</span>
+                )}
+              </CardTitle>
+              {/* Table visibility toggle */}
+              <button
+                onClick={handleToggleTable}
+                className="h-7 w-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                title={showTable ? "Hide table" : "Show table"}
+              >
+                {showTable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </button>
             </div>
+            {showTable && (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <Input placeholder="Search..." className="pl-9 w-[180px] text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+                </div>
+                <Button variant="outline" size="sm" onClick={handleDownloadPng}><Camera className="h-4 w-4 mr-1" />PNG</Button>
+                <Button variant="outline" size="sm" onClick={handleExportCsv}><Download className="h-4 w-4 mr-1" />Export</Button>
+              </div>
+            )}
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border border-gray-200 dark:border-white/10 overflow-auto max-h-[500px]">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                  {config.table.columns.map((col) => (
-                    <TableHead
-                      key={col}
-                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group"
-                      onClick={() => handleSort(col)}
-                    >
-                      <div className="flex items-center gap-1">
-                        {col}
-                        {sortCol === col ? <span className="text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span> : <ArrowUpDown className="h-3 w-3 opacity-0 group-hover:opacity-30" />}
-                      </div>
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRows.slice(0, 100).map((row, rowIdx) => (
-                  <TableRow key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-white/5 even:bg-gray-50/40 dark:even:bg-white/[0.02]">
+        {showTable && (
+          <CardContent>
+            <div className="rounded-lg border border-gray-200 dark:border-white/10 overflow-auto max-h-[500px]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 dark:bg-gray-800/50">
                     {config.table.columns.map((col) => (
-                      <TableCell key={col} className="whitespace-nowrap py-2.5">
-                        {col === config.table.statusField && config.table.statusOptions ? (
-                          <StatusBadge value={row[col] || ""} options={config.table.statusOptions} onChange={(v) => handleStatusChange(rowIdx, col, v)} />
-                        ) : (
-                          <span className="text-sm text-gray-700 dark:text-gray-200">{row[col]}</span>
-                        )}
-                      </TableCell>
+                      <TableHead
+                        key={col}
+                        className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group"
+                        onClick={() => handleSort(col)}
+                      >
+                        <div className="flex items-center gap-1">
+                          {col}
+                          {sortCol === col ? <span className="text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span> : <ArrowUpDown className="h-3 w-3 opacity-0 group-hover:opacity-30" />}
+                        </div>
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filteredRows.length > 100 && <p className="text-xs text-gray-400 mt-2 text-center">Showing 100 of {filteredRows.length} rows</p>}
-        </CardContent>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.slice(0, 100).map((row, rowIdx) => (
+                    <TableRow key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-white/5 even:bg-gray-50/40 dark:even:bg-white/[0.02]">
+                      {config.table.columns.map((col) => (
+                        <TableCell key={col} className="whitespace-nowrap py-2.5">
+                          {col === config.table.statusField && config.table.statusOptions ? (
+                            <StatusBadge value={row[col] || ""} options={config.table.statusOptions} onChange={(v) => handleStatusChange(rowIdx, col, v)} />
+                          ) : (
+                            <span className="text-sm text-gray-700 dark:text-gray-200">{row[col]}</span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {filteredRows.length > 100 && <p className="text-xs text-gray-400 mt-2 text-center">Showing 100 of {filteredRows.length} rows</p>}
+          </CardContent>
+        )}
       </Card>
 
       {/* ── Chart Settings Dialog ── */}
