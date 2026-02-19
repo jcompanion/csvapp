@@ -320,7 +320,7 @@ export default function Home() {
                   <div className="h-14 w-14 rounded-2xl bg-white border border-gray-200 dark:border-white/10 shadow-sm flex items-center justify-center">
                     <item.icon className="h-6 w-6 text-orange-500" />
                   </div>
-                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-orange-50 dark:bg-orange-950/300 text-white text-xs font-bold flex items-center justify-center shadow-sm">
+                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-orange-50 dark:bg-orange-950/30 text-white text-xs font-bold flex items-center justify-center shadow-sm">
                     {item.step}
                   </span>
                 </div>
@@ -363,7 +363,7 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-orange-200 bg-orange-50 dark:bg-orange-950/30/30 p-6">
+            <div className="rounded-2xl border border-orange-200 bg-orange-50 dark:bg-orange-950/30 p-6">
               <p className="font-semibold text-orange-600 mb-4">With CSVApp</p>
               <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
                 {[

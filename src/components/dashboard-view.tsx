@@ -44,6 +44,7 @@ import {
   Download,
   Camera,
   TrendingUp,
+  TrendingDown,
   Hash,
   FileSpreadsheet,
 } from "lucide-react";
@@ -63,6 +64,76 @@ const CHART_COLORS = [
   "#f97316", "#3b82f6", "#22c55e", "#8b5cf6", "#ef4444",
   "#06b6d4", "#ec4899", "#14b8a6", "#f59e0b", "#6366f1",
 ];
+
+// Detect if a column header or values look like a date column
+function isDateColumn(header: string, rows: Record<string, string>[]): boolean {
+  // Check header name first
+  const lowerHeader = header.toLowerCase();
+  if (
+    lowerHeader.includes("date") ||
+    lowerHeader.includes("time") ||
+    lowerHeader.includes("created") ||
+    lowerHeader.includes("updated") ||
+    lowerHeader.includes("closed") ||
+    lowerHeader.includes("opened") ||
+    lowerHeader.includes("modified") ||
+    lowerHeader.includes("timestamp") ||
+    lowerHeader.includes("at") // created_at, updated_at
+  ) {
+    return true;
+  }
+
+  // Check values for date patterns
+  const vals = rows.slice(0, 15).map((r) => r[header]).filter(Boolean);
+  if (vals.length === 0) return false;
+
+  const datePatterns = [
+    /^\d{4}-\d{2}-\d{2}/, // ISO: 2026-02-19
+    /^\d{1,2}\/\d{1,2}\/\d{2,4}/, // MM/DD/YYYY
+    /^\d{1,2}-\d{1,2}-\d{2,4}/, // MM-DD-YYYY
+    /^[A-Za-z]+ \d{1,2},?\s+\d{4}/, // Jan 5, 2026
+    /^\d{4}\/\d{2}\/\d{2}/, // YYYY/MM/DD
+  ];
+
+  const dateCount = vals.filter((v) =>
+    datePatterns.some((p) => p.test(v.trim()))
+  ).length;
+
+  return dateCount > vals.length * 0.5;
+}
+
+// Custom dark tooltip component
+function CustomTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number | string; color?: string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-gray-900 text-white rounded-xl px-3 py-2.5 shadow-2xl text-sm border border-white/10 min-w-[120px]">
+      {label && (
+        <p className="font-semibold text-gray-200 mb-1.5 text-xs uppercase tracking-wide truncate max-w-[200px]">
+          {label}
+        </p>
+      )}
+      {payload.map((p, i) => (
+        <p key={i} className="flex items-center gap-2">
+          <span
+            className="inline-block h-2 w-2 rounded-full shrink-0"
+            style={{ backgroundColor: p.color || CHART_COLORS[i] }}
+          />
+          <span className="text-gray-300">
+            {typeof p.value === "number"
+              ? p.value >= 1000
+                ? `$${(p.value / 1000).toFixed(1)}K`
+                : p.value.toLocaleString()
+              : p.value}
+          </span>
+        </p>
+      ))}
+    </div>
+  );
+}
 
 function StatusBadge({
   value,
@@ -124,23 +195,69 @@ function StatusBadge({
   );
 }
 
-// KPI stat card
-function StatCard({ label, value, change }: { label: string; value: string; change?: string }) {
+// KPI stat card — DataFast-style
+function StatCard({
+  label,
+  value,
+  change,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  change?: string;
+  icon?: React.ElementType;
+}) {
   const isPositive = change && !change.startsWith("-");
+
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-4">
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gradient-to-br from-white to-gray-50/80 dark:from-gray-900 dark:to-gray-800/60 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider truncate pr-2">
+          {label}
+        </p>
+        {Icon && (
+          <div className="h-7 w-7 rounded-lg bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center shrink-0">
+            <Icon className="h-3.5 w-3.5 text-orange-500" />
+          </div>
+        )}
+      </div>
+      <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight leading-none">
+        {value}
+      </p>
       {change && (
-        <p className={`text-xs font-medium mt-1 ${isPositive ? "text-green-600" : "text-red-500"}`}>
-          {isPositive ? "↑" : "↓"} {change}
+        <p
+          className={`text-xs font-semibold mt-2 flex items-center gap-1 ${
+            isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
+          }`}
+        >
+          {isPositive ? (
+            <TrendingUp className="h-3 w-3" />
+          ) : (
+            <TrendingDown className="h-3 w-3" />
+          )}
+          {change}
         </p>
       )}
     </div>
   );
 }
 
-function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; data: Record<string, string>[]; accentColor: string; index: number }) {
+// Gradient ID helper
+function gradientId(color: string, index: number) {
+  return `gradient-${index}-${color.replace("#", "")}`;
+}
+
+function ChartCard({
+  chart,
+  data,
+  accentColor,
+  index,
+}: {
+  chart: ChartConfig;
+  data: Record<string, string>[];
+  accentColor: string;
+  index: number;
+}) {
   const chartData = useMemo(() => {
     if (chart.type === "pie") {
       const grouped: Record<string, number> = {};
@@ -152,7 +269,6 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
       return Object.entries(grouped).map(([name, value]) => ({ name, value }));
     }
 
-    // For bar charts, aggregate (sum) by xAxis; for line/area, keep order
     if (chart.type === "bar" || chart.type === "horizontalBar") {
       const grouped: Record<string, number> = {};
       data.forEach((row) => {
@@ -183,24 +299,56 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
   }, [chart, data]);
 
   const color = CHART_COLORS[index % CHART_COLORS.length];
-  const tooltipStyle = { backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", color: "#111", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" };
+  const gId = gradientId(color, index);
+
+  // Axis / grid shared props
+  const axisProps = {
+    tick: { fontSize: 12, fill: "#9ca3af" },
+    stroke: "transparent",
+  };
+  const gridProps = {
+    strokeDasharray: "3 3" as const,
+    stroke: "#374151",
+    strokeOpacity: 0.5,
+  };
+
+  // Gradient defs SVG element
+  const GradientDefs = (
+    <defs>
+      <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+        <stop offset="95%" stopColor={color} stopOpacity={0.02} />
+      </linearGradient>
+    </defs>
+  );
 
   return (
-    <Card className="border-gray-200 dark:border-white/10 shadow-sm">
+    <Card className="border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow rounded-xl">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">
+        <CardTitle className="text-sm font-semibold text-gray-500 dark:text-gray-400">
           {chart.title}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={chart.type === "horizontalBar" ? Math.max(250, chartData.length * 40) : 250}>
+        <ResponsiveContainer
+          width="100%"
+          height={chart.type === "horizontalBar" ? Math.max(250, chartData.length * 40) : 250}
+        >
           {chart.type === "horizontalBar" ? (
             <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} width={120} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+              {GradientDefs}
+              <CartesianGrid {...gridProps} horizontal={false} />
+              <XAxis type="number" {...axisProps} />
+              <YAxis type="category" dataKey="name" {...axisProps} width={120} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+              <Bar
+                dataKey="value"
+                radius={[0, 4, 4, 0]}
+                barSize={24}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              >
                 {chartData.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
@@ -208,11 +356,21 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
             </BarChart>
           ) : chart.type === "bar" ? (
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <YAxis tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              {GradientDefs}
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="name" {...axisProps} />
+              <YAxis {...axisProps} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
+              <Bar
+                dataKey="value"
+                radius={[4, 4, 0, 0]}
+                fill={`url(#${gId})`}
+                stroke={color}
+                strokeWidth={1.5}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              >
                 {chartData.map((_, i) => (
                   <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                 ))}
@@ -220,27 +378,74 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
             </BarChart>
           ) : chart.type === "line" ? (
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <YAxis tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={3} dot={{ fill: color, stroke: color, r: 4 }} activeDot={{ r: 6, fill: color }} />
+              {GradientDefs}
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="name" {...axisProps} />
+              <YAxis {...axisProps} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(255,255,255,0.2)", strokeWidth: 1 }} />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={color}
+                strokeWidth={2.5}
+                dot={{ fill: color, stroke: color, r: 3, strokeWidth: 2 }}
+                activeDot={{ r: 5, fill: color, stroke: "white", strokeWidth: 2 }}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              />
             </LineChart>
           ) : chart.type === "area" ? (
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <YAxis tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.15} strokeWidth={3} />
+              {GradientDefs}
+              <CartesianGrid {...gridProps} />
+              <XAxis dataKey="name" {...axisProps} />
+              <YAxis {...axisProps} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(255,255,255,0.2)", strokeWidth: 1 }} />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={color}
+                fill={`url(#${gId})`}
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 5, fill: color, stroke: "white", strokeWidth: 2 }}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+              />
             </AreaChart>
           ) : (
             <PieChart>
-              <Tooltip contentStyle={tooltipStyle} />
-              <Legend />
-              <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                formatter={(value) => (
+                  <span className="text-xs text-gray-600 dark:text-gray-300">{value}</span>
+                )}
+              />
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={90}
+                innerRadius={40}
+                paddingAngle={2}
+                isAnimationActive={true}
+                animationDuration={800}
+                animationEasing="ease-out"
+                label={({ name, percent }) =>
+                  percent > 0.08 ? `${(percent * 100).toFixed(0)}%` : ""
+                }
+                labelLine={false}
+              >
                 {chartData.map((_, i) => (
-                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  <Cell
+                    key={i}
+                    fill={CHART_COLORS[i % CHART_COLORS.length]}
+                    stroke="transparent"
+                  />
                 ))}
               </Pie>
             </PieChart>
@@ -261,29 +466,43 @@ export function DashboardView({ config, data }: DashboardViewProps) {
   // Detect org chart
   const isOrgChart = useMemo(() => {
     const lower = data.headers.map((h) => h.toLowerCase());
-    return lower.some((h) => h.includes("reports_to") || h.includes("reportsto") || h.includes("manager") || h.includes("supervisor"));
+    return lower.some(
+      (h) =>
+        h.includes("reports_to") ||
+        h.includes("reportsto") ||
+        h.includes("manager") ||
+        h.includes("supervisor")
+    );
   }, [data.headers]);
 
-  // Compute KPI stats from data
+  // Compute KPI stats from data — skip date columns
   const stats = useMemo(() => {
-    const result: { label: string; value: string }[] = [];
-    result.push({ label: "Total Rows", value: data.totalRows.toLocaleString() });
-    result.push({ label: "Columns", value: data.headers.length.toString() });
+    const result: { label: string; value: string; icon?: React.ElementType }[] = [];
+    result.push({ label: "Total Rows", value: data.totalRows.toLocaleString(), icon: Hash });
+    result.push({ label: "Columns", value: data.headers.length.toString(), icon: FileSpreadsheet });
 
-    // Find numeric columns and compute totals/averages
+    // Find numeric columns — exclude date columns
     const numericCols = data.headers.filter((h) => {
+      // Skip date columns by header name or value patterns
+      if (isDateColumn(h, data.rows)) return false;
+
       const vals = data.rows.slice(0, 10).map((r) => r[h]);
-      return vals.some((v) => v && !isNaN(parseFloat(v.replace(/[,$%]/g, ""))));
+      return vals.some(
+        (v) => v && !isNaN(parseFloat(v.replace(/[,$%]/g, "")))
+      );
     });
 
     numericCols.slice(0, 2).forEach((col) => {
-      const vals = data.rows.map((r) => parseFloat((r[col] || "0").replace(/[,$%]/g, "")));
+      const vals = data.rows.map((r) =>
+        parseFloat((r[col] || "0").replace(/[,$%]/g, ""))
+      );
       const validVals = vals.filter((v) => !isNaN(v));
       if (validVals.length > 0) {
         const sum = validVals.reduce((a, b) => a + b, 0);
         const isLargeNumbers = sum > 1000;
         result.push({
           label: `Total ${col}`,
+          icon: TrendingUp,
           value: isLargeNumbers
             ? `$${(sum / 1000).toFixed(1)}K`
             : sum.toLocaleString(),
@@ -331,7 +550,11 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     return rows;
   }, [data.rows, search, sortCol, sortDir, overrides]);
 
-  const handleStatusChange = (rowIndex: number, column: string, newValue: string) => {
+  const handleStatusChange = (
+    rowIndex: number,
+    column: string,
+    newValue: string
+  ) => {
     setOverrides((prev) => ({
       ...prev,
       [rowIndex]: { ...prev[rowIndex], [column]: newValue },
@@ -351,7 +574,10 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     if (!dashboardRef.current) return;
     const { toPng } = await import("html-to-image");
     try {
-      const dataUrl = await toPng(dashboardRef.current, { quality: 0.95, backgroundColor: "#ffffff" });
+      const dataUrl = await toPng(dashboardRef.current, {
+        quality: 0.95,
+        backgroundColor: "#ffffff",
+      });
       const link = document.createElement("a");
       link.download = `${config.title || "dashboard"}.png`;
       link.href = dataUrl;
@@ -366,7 +592,9 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     const csvRows = [
       headers.join(","),
       ...filteredRows.map((row) =>
-        headers.map((h) => `"${(row[h] || "").replace(/"/g, '""')}"`).join(",")
+        headers
+          .map((h) => `"${(row[h] || "").replace(/"/g, '""')}"`)
+          .join(",")
       ),
     ];
     const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
@@ -382,26 +610,35 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     <div className="space-y-6" ref={dashboardRef}>
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{config.title}</h1>
-        <p className="text-gray-500 mt-1">{config.description}</p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          {config.title}
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1">{config.description}</p>
       </div>
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <StatCard key={stat.label} label={stat.label} value={stat.value} />
+          <StatCard
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            icon={stat.icon}
+          />
         ))}
       </div>
 
       {/* AI Insights */}
       {config.insights.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50/50 shadow-sm">
+        <Card className="border-orange-200 dark:border-orange-900/40 bg-orange-50/50 dark:bg-orange-950/20 shadow-sm">
           <CardContent className="pt-4">
             <div className="flex items-start gap-3">
               <Lightbulb className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
               <div className="space-y-1">
                 {config.insights.map((insight, i) => (
-                  <p key={i} className="text-sm text-gray-700 dark:text-gray-200">{insight}</p>
+                  <p key={i} className="text-sm text-gray-700 dark:text-gray-200">
+                    {insight}
+                  </p>
                 ))}
               </div>
             </div>
@@ -412,27 +649,44 @@ export function DashboardView({ config, data }: DashboardViewProps) {
       {/* Org Chart */}
       {isOrgChart && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Organization</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+            Organization
+          </h2>
           <OrgChart data={data.rows} headers={data.headers} />
         </div>
       )}
 
       {/* Charts */}
       {config.charts.length > 0 && (
-        <div className={`grid gap-4 ${config.charts.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
+        <div
+          className={`grid gap-4 ${
+            config.charts.length === 1
+              ? "grid-cols-1"
+              : "grid-cols-1 md:grid-cols-2"
+          }`}
+        >
           {config.charts.map((chart, i) => (
-            <ChartCard key={i} chart={chart} data={data.rows} accentColor={config.accentColor} index={i} />
+            <ChartCard
+              key={i}
+              chart={chart}
+              data={data.rows}
+              accentColor={config.accentColor}
+              index={i}
+            />
           ))}
         </div>
       )}
 
       {/* Data Table */}
-      <Card className="border-gray-200 dark:border-white/10 shadow-sm">
+      <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg text-gray-900 dark:text-white">
               Data
-              <span className="ml-2 text-xs font-normal text-gray-400">{filteredRows.length} rows{filteredRows.length > 100 ? " (showing first 100)" : ""}</span>
+              <span className="ml-2 text-xs font-normal text-gray-400">
+                {filteredRows.length} rows
+                {filteredRows.length > 100 ? " (showing first 100)" : ""}
+              </span>
             </CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -456,7 +710,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-gray-200 dark:border-white/10 overflow-auto max-h-[500px]">
+          <div className="rounded-lg border border-gray-200 dark:border-white/10 overflow-auto max-h-[500px]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 dark:bg-gray-800/50">
@@ -469,7 +723,9 @@ export function DashboardView({ config, data }: DashboardViewProps) {
                       <div className="flex items-center gap-1">
                         {col}
                         {sortCol === col ? (
-                          <span className="text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span>
+                          <span className="text-orange-500">
+                            {sortDir === "asc" ? "↑" : "↓"}
+                          </span>
                         ) : (
                           <ArrowUpDown className="h-3 w-3 opacity-0 group-hover:opacity-30" />
                         )}
@@ -480,7 +736,10 @@ export function DashboardView({ config, data }: DashboardViewProps) {
               </TableHeader>
               <TableBody>
                 {filteredRows.slice(0, 100).map((row, rowIdx) => (
-                  <TableRow key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-gray-800/50">
+                  <TableRow
+                    key={rowIdx}
+                    className="hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-gray-800/50"
+                  >
                     {config.table.columns.map((col) => (
                       <TableCell key={col} className="whitespace-nowrap">
                         {col === config.table.statusField &&
@@ -491,7 +750,9 @@ export function DashboardView({ config, data }: DashboardViewProps) {
                             onChange={(v) => handleStatusChange(rowIdx, col, v)}
                           />
                         ) : (
-                          <span className="text-sm text-gray-700 dark:text-gray-200">{row[col]}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-200">
+                            {row[col]}
+                          </span>
                         )}
                       </TableCell>
                     ))}
