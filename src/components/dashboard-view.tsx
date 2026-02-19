@@ -152,14 +152,16 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
     }
 
     // For bar charts, aggregate (sum) by xAxis; for line/area, keep order
-    if (chart.type === "bar") {
+    if (chart.type === "bar" || chart.type === "horizontalBar") {
       const grouped: Record<string, number> = {};
       data.forEach((row) => {
         const key = row[chart.xAxis] || "Unknown";
         const val = parseFloat(row[chart.yAxis]) || 0;
         grouped[key] = (grouped[key] || 0) + val;
       });
-      return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+      const entries = Object.entries(grouped).map(([name, value]) => ({ name, value }));
+      if (chart.type === "horizontalBar") entries.sort((a, b) => b.value - a.value);
+      return entries;
     }
 
     // Line/area: keep row order, deduplicate by xAxis
@@ -190,8 +192,20 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          {chart.type === "bar" ? (
+        <ResponsiveContainer width="100%" height={chart.type === "horizontalBar" ? Math.max(250, chartData.length * 40) : 250}>
+          {chart.type === "horizontalBar" ? (
+            <BarChart data={chartData} layout="vertical" margin={{ left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} width={120} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={24}>
+                {chartData.map((_, i) => (
+                  <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          ) : chart.type === "bar" ? (
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
