@@ -177,17 +177,17 @@ function OrgNode({ data }: NodeProps) {
           >
             {getInitials(name)}
           </div>
-          <p className="font-semibold text-xs text-gray-900 truncate max-w-full">{name}</p>
+          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate max-w-full">{name}</p>
           {title && (
-            <p className="text-[10px] text-gray-900/60 truncate max-w-full">{title}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-300 truncate max-w-full">{title}</p>
           )}
           {department && !isCircle && (
-            <span className={`text-[9px] px-2 py-0.5 rounded-full border ${deptColor.border} ${deptColor.text} mt-1`}>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${deptColor.border} ${deptColor.text} mt-1`}>
               {department}
             </span>
           )}
           {bio && (
-            <p className="text-[9px] text-gray-900/25 mt-1">tap to flip</p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">tap to flip</p>
           )}
         </div>
 
@@ -204,13 +204,13 @@ function OrgNode({ data }: NodeProps) {
             boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(0,0,0,0.06)"}`,
           }}
         >
-          <p className="font-semibold text-xs text-gray-900 mb-1">{name}</p>
+          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1">{name}</p>
           {bio ? (
-            <p className="text-[10px] text-gray-900/70 leading-relaxed line-clamp-4">{bio}</p>
+            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">{bio}</p>
           ) : (
-            <p className="text-[10px] text-gray-900/40 italic">No bio</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 italic">No bio</p>
           )}
-          <p className="text-[9px] text-gray-900/25 mt-1">tap to flip back</p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">tap to flip back</p>
         </div>
       </div>
 
