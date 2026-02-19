@@ -2,10 +2,16 @@
 
 import { DashboardView } from "@/components/dashboard-view";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { FileSpreadsheet, Eye, Clock, ArrowLeft, Code, Copy, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { FileSpreadsheet, Eye, Clock, ArrowLeft, Code, Copy, CheckCircle2, Pencil, Save, Check } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface SharedDashboardProps {
   config: any;
@@ -13,14 +19,64 @@ interface SharedDashboardProps {
   title: string;
   views: number;
   createdAt: string;
+  slug: string;
+  userId?: string | null;
 }
 
-export function SharedDashboard({ config, data, title, views, createdAt }: SharedDashboardProps) {
+export function SharedDashboard({ config: initialConfig, data, title, views, createdAt, slug, userId }: SharedDashboardProps) {
   const timeAgo = getTimeAgo(new Date(createdAt));
   const [showEmbed, setShowEmbed] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
-  const slug = typeof window !== "undefined" ? window.location.pathname.split("/").pop() : "";
+  const [isOwner, setIsOwner] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [localConfig, setLocalConfig] = useState(initialConfig);
+  const [isDirty, setIsDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
   const embedCode = `<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/${slug}" width="100%" height="600" frameborder="0" style="border-radius: 12px; border: 1px solid #e5e7eb;"></iframe>`;
+
+  // Check if current user is the dashboard owner
+  useEffect(() => {
+    if (!userId) return;
+    supabase.auth.getUser().then(({ data: userData }) => {
+      if (userData.user?.id === userId) setIsOwner(true);
+    });
+  }, [userId]);
+
+  const handleConfigChange = useCallback((newConfig: any) => {
+    setLocalConfig(newConfig);
+    setIsDirty(true);
+    setSaved(false);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("dashboards")
+        .update({ config: localConfig, updated_at: new Date().toISOString() })
+        .eq("slug", slug);
+      if (!error) {
+        setIsDirty(false);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }, [localConfig, slug]);
+
+  // Warn on unsaved changes
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -52,6 +108,36 @@ export function SharedDashboard({ config, data, title, views, createdAt }: Share
               <Code className="h-3.5 w-3.5" />
               Embed
             </Button>
+            {isOwner && (
+              <>
+                <Button
+                  variant={isEditMode ? "default" : "ghost"}
+                  size="sm"
+                  className={`text-xs gap-1.5 ${isEditMode ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
+                  onClick={() => setIsEditMode(!isEditMode)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  {isEditMode ? "Done" : "Edit"}
+                </Button>
+                {isDirty && (
+                  <Button
+                    size="sm"
+                    className="text-xs gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleSave}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <span className="animate-spin h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full" />
+                    ) : saved ? (
+                      <Check className="h-3.5 w-3.5" />
+                    ) : (
+                      <Save className="h-3.5 w-3.5" />
+                    )}
+                    {saving ? "Saving..." : saved ? "Saved!" : "Save"}
+                  </Button>
+                )}
+              </>
+            )}
             <ThemeToggle />
             <Link href="/">
               <Button
@@ -90,7 +176,12 @@ export function SharedDashboard({ config, data, title, views, createdAt }: Share
         </div>
       )}
       <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <DashboardView config={config} data={data} />
+        <DashboardView
+          config={localConfig}
+          data={data}
+          isEditMode={isEditMode}
+          onConfigChange={isOwner ? handleConfigChange : undefined}
+        />
       </main>
     </div>
   );

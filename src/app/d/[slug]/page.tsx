@@ -52,6 +52,8 @@ export default async function DashboardPage({ params }: { params: Promise<{ slug
       title={dashboard.title}
       views={dashboard.views}
       createdAt={dashboard.created_at}
+      slug={slug}
+      userId={dashboard.user_id}
     />
   );
 }
