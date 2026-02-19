@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -12,8 +12,10 @@ import {
   type Node,
   type Edge,
   type NodeProps,
+  type NodeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { RotateCcw, GripVertical } from "lucide-react";
 
 interface OrgPerson {
   name: string;
@@ -28,6 +30,9 @@ interface OrgPerson {
 interface OrgChartProps {
   data: Record<string, string>[];
   headers: string[];
+  isEditMode?: boolean;
+  savedPositions?: Record<string, { x: number; y: number }>;
+  onPositionChange?: (positions: Record<string, { x: number; y: number }>) => void;
 }
 
 // Detect which columns map to name, title, department, reports_to, bio, location
@@ -94,31 +99,26 @@ function getRoleTier(title?: string): RoleTier {
 // Shape styles per tier
 const SHAPE_STYLES: Record<RoleTier, { clipPath: string; width: string; label: string }> = {
   executive: {
-    // Star/badge shape via border-radius trick — we'll use a wide rounded hexagon
     clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
     width: "w-[200px]",
     label: "⭐",
   },
   vp: {
-    // Diamond/rhombus with cut corners
     clipPath: "polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%)",
     width: "w-[200px]",
     label: "★",
   },
   manager: {
-    // Rounded octagon
     clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
     width: "w-[200px]",
     label: "◆",
   },
   senior: {
-    // Pill / stadium shape — just use border-radius
     clipPath: "",
     width: "w-[200px]",
     label: "▲",
   },
   ic: {
-    // Circle
     clipPath: "",
     width: "w-[160px]",
     label: "●",
@@ -130,6 +130,7 @@ function OrgNode({ data }: NodeProps) {
   const [flipped, setFlipped] = useState(false);
   const person = data.person as OrgPerson;
   const cols = data.cols as ReturnType<typeof detectColumns>;
+  const isEditMode = data.isEditMode as boolean;
   const deptColor = getDeptColor(person[cols.department || ""] || "");
 
   const name = person[cols.name] || "Unknown";
@@ -146,9 +147,10 @@ function OrgNode({ data }: NodeProps) {
     <div
       className="cursor-pointer select-none"
       onClick={(e) => { e.stopPropagation(); setFlipped(!flipped); }}
-      onPointerDown={(e) => e.stopPropagation()}
-      onMouseDown={(e) => e.stopPropagation()}
-      style={{ perspective: "1000px", pointerEvents: "all" }}
+      // In edit mode, allow pointer events to bubble for React Flow drag handling
+      onPointerDown={isEditMode ? undefined : (e) => e.stopPropagation()}
+      onMouseDown={isEditMode ? undefined : (e) => e.stopPropagation()}
+      style={{ perspective: "1000px", pointerEvents: "all", cursor: isEditMode ? "grab" : "pointer" }}
     >
       <Handle type="target" position={Position.Top} className="!bg-gray-300 !border-gray-400 !w-2 !h-2" />
 
@@ -163,7 +165,7 @@ function OrgNode({ data }: NodeProps) {
         <div
           className={`${shape.width} ${deptColor.bg} backdrop-blur-sm flex flex-col items-center justify-center text-center ${
             isCircle ? "aspect-square rounded-full" : useClipPath ? "" : "rounded-2xl"
-          }`}
+          } ${isEditMode ? "ring-2 ring-orange-400/30 ring-offset-1" : ""}`}
           style={{
             backfaceVisibility: "hidden",
             ...(useClipPath ? { clipPath: shape.clipPath } : {}),
@@ -186,8 +188,13 @@ function OrgNode({ data }: NodeProps) {
               {department}
             </span>
           )}
-          {bio && (
+          {bio && !isEditMode && (
             <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">tap to flip</p>
+          )}
+          {isEditMode && (
+            <div className="mt-1 flex items-center gap-0.5 text-orange-400/60">
+              <GripVertical className="h-3 w-3" />
+            </div>
           )}
         </div>
 
@@ -221,130 +228,210 @@ function OrgNode({ data }: NodeProps) {
 
 const nodeTypes = { orgNode: OrgNode };
 
-export function OrgChart({ data, headers }: OrgChartProps) {
-  const cols = useMemo(() => detectColumns(headers), [headers]);
+// Build auto-layout nodes/edges from raw data (no saved positions)
+function buildAutoLayout(
+  data: Record<string, string>[],
+  cols: ReturnType<typeof detectColumns>,
+  isEditMode: boolean
+) {
+  const people = data as OrgPerson[];
 
-  const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const people = data as OrgPerson[];
+  const nameToIndex = new Map<string, number>();
+  people.forEach((p, i) => {
+    const name = p[cols.name] || "";
+    nameToIndex.set(name.toLowerCase(), i);
+  });
 
-    // Build hierarchy: find root(s), then layout level by level
-    const nameToIndex = new Map<string, number>();
-    people.forEach((p, i) => {
-      const name = p[cols.name] || "";
-      nameToIndex.set(name.toLowerCase(), i);
-    });
+  const childrenOf = new Map<number, number[]>();
+  const roots: number[] = [];
 
-    // Find children for each person
-    const childrenOf = new Map<number, number[]>();
-    const roots: number[] = [];
-
-    people.forEach((p, i) => {
-      const reportsTo = cols.reportsTo ? p[cols.reportsTo] : undefined;
-      if (!reportsTo || !reportsTo.trim()) {
-        roots.push(i);
+  people.forEach((p, i) => {
+    const reportsTo = cols.reportsTo ? p[cols.reportsTo] : undefined;
+    if (!reportsTo || !reportsTo.trim()) {
+      roots.push(i);
+    } else {
+      const parentIdx = nameToIndex.get(reportsTo.toLowerCase());
+      if (parentIdx !== undefined) {
+        childrenOf.set(parentIdx, [...(childrenOf.get(parentIdx) || []), i]);
       } else {
-        const parentIdx = nameToIndex.get(reportsTo.toLowerCase());
-        if (parentIdx !== undefined) {
-          childrenOf.set(parentIdx, [...(childrenOf.get(parentIdx) || []), i]);
-        } else {
-          roots.push(i); // Parent not found, treat as root
-        }
+        roots.push(i);
       }
+    }
+  });
+
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+  const NODE_W = 260;
+  const NODE_H = 160;
+
+  function getSubtreeWidth(idx: number): number {
+    const children = childrenOf.get(idx) || [];
+    if (children.length === 0) return NODE_W;
+    return children.reduce((sum, c) => sum + getSubtreeWidth(c), 0) + (children.length - 1) * 20;
+  }
+
+  const visited = new Set<number>();
+
+  function layoutNode(idx: number, x: number, y: number) {
+    if (visited.has(idx)) return;
+    visited.add(idx);
+
+    const person = people[idx];
+    nodes.push({
+      id: String(idx),
+      type: "orgNode",
+      position: { x, y },
+      data: { person, cols, isEditMode },
     });
 
-    const nodes: Node[] = [];
-    const edges: Edge[] = [];
-    const NODE_W = 260;
-    const NODE_H = 160;
-
-    // Recursive tree layout — each subtree gets its own width allocation
-    function getSubtreeWidth(idx: number): number {
-      const children = childrenOf.get(idx) || [];
-      if (children.length === 0) return NODE_W;
-      return children.reduce((sum, c) => sum + getSubtreeWidth(c), 0) + (children.length - 1) * 20;
+    const reportsTo = cols.reportsTo ? person[cols.reportsTo] : undefined;
+    if (reportsTo && reportsTo.trim()) {
+      const parentIdx = nameToIndex.get(reportsTo.toLowerCase());
+      if (parentIdx !== undefined) {
+        edges.push({
+          id: `e-${parentIdx}-${idx}`,
+          source: String(parentIdx),
+          target: String(idx),
+          type: "smoothstep",
+          style: { stroke: "rgba(0,0,0,0.1)", strokeWidth: 2 },
+          animated: false,
+        });
+      }
     }
 
-    const visited = new Set<number>();
+    const children = childrenOf.get(idx) || [];
+    if (children.length === 0) return;
 
-    function layoutNode(idx: number, x: number, y: number) {
-      if (visited.has(idx)) return;
-      visited.add(idx);
+    const totalWidth = children.reduce((sum, c) => sum + getSubtreeWidth(c), 0) + (children.length - 1) * 20;
+    let childX = x + NODE_W / 2 - totalWidth / 2;
 
-      const person = people[idx];
+    children.forEach((childIdx) => {
+      const childW = getSubtreeWidth(childIdx);
+      layoutNode(childIdx, childX + childW / 2 - NODE_W / 2, y + NODE_H);
+      childX += childW + 20;
+    });
+  }
+
+  const totalRootWidth = roots.reduce((sum, r) => sum + getSubtreeWidth(r), 0) + (roots.length - 1) * 60;
+  let rootX = -totalRootWidth / 2;
+  roots.forEach((rootIdx) => {
+    const w = getSubtreeWidth(rootIdx);
+    layoutNode(rootIdx, rootX + w / 2 - NODE_W / 2, 0);
+    rootX += w + 60;
+  });
+
+  people.forEach((person, idx) => {
+    if (!visited.has(idx)) {
       nodes.push({
         id: String(idx),
         type: "orgNode",
-        position: { x, y },
-        data: { person, cols },
+        position: { x: rootX, y: 0 },
+        data: { person, cols, isEditMode },
       });
-
-      // Edge to parent
-      const reportsTo = cols.reportsTo ? person[cols.reportsTo] : undefined;
-      if (reportsTo && reportsTo.trim()) {
-        const parentIdx = nameToIndex.get(reportsTo.toLowerCase());
-        if (parentIdx !== undefined) {
-          edges.push({
-            id: `e-${parentIdx}-${idx}`,
-            source: String(parentIdx),
-            target: String(idx),
-            type: "smoothstep",
-            style: { stroke: "rgba(0,0,0,0.1)", strokeWidth: 2 },
-            animated: false,
-          });
-        }
-      }
-
-      // Layout children
-      const children = childrenOf.get(idx) || [];
-      if (children.length === 0) return;
-
-      const totalWidth = children.reduce((sum, c) => sum + getSubtreeWidth(c), 0) + (children.length - 1) * 20;
-      let childX = x + NODE_W / 2 - totalWidth / 2;
-
-      children.forEach((childIdx) => {
-        const childW = getSubtreeWidth(childIdx);
-        layoutNode(childIdx, childX + childW / 2 - NODE_W / 2, y + NODE_H);
-        childX += childW + 20;
-      });
+      rootX += NODE_W + 20;
     }
+  });
 
-    // Layout each root tree centered
-    const totalRootWidth = roots.reduce((sum, r) => sum + getSubtreeWidth(r), 0) + (roots.length - 1) * 60;
-    let rootX = -totalRootWidth / 2;
-    roots.forEach((rootIdx) => {
-      const w = getSubtreeWidth(rootIdx);
-      layoutNode(rootIdx, rootX + w / 2 - NODE_W / 2, 0);
-      rootX += w + 60;
+  return { nodes, edges };
+}
+
+export function OrgChart({
+  data,
+  headers,
+  isEditMode = false,
+  savedPositions,
+  onPositionChange,
+}: OrgChartProps) {
+  const cols = useMemo(() => detectColumns(headers), [headers]);
+
+  // Build auto-layout (without saved positions)
+  const { nodes: autoNodes, edges: initialEdges } = useMemo(
+    () => buildAutoLayout(data, cols, isEditMode),
+    [data, cols, isEditMode]
+  );
+
+  // Apply saved positions on top of auto-layout
+  const initialNodes = useMemo(() => {
+    if (!savedPositions || Object.keys(savedPositions).length === 0) return autoNodes;
+    return autoNodes.map((node) => {
+      const saved = savedPositions[node.id];
+      if (saved) return { ...node, position: saved };
+      return node;
     });
+  }, [autoNodes, savedPositions]);
 
-    // Handle disconnected nodes
-    people.forEach((person, idx) => {
-      if (!visited.has(idx)) {
-        nodes.push({
-          id: String(idx),
-          type: "orgNode",
-          position: { x: rootX, y: 0 },
-          data: { person, cols },
-        });
-        rootX += NODE_W + 20;
-      }
-    });
-
-    return { nodes, edges };
-  }, [data, cols]);
-
-  const [nodes] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges] = useEdgesState(initialEdges);
 
+  // Re-sync nodes when initialNodes change (data/editMode changes)
+  const prevInitialNodesRef = useRef(initialNodes);
+  useEffect(() => {
+    if (prevInitialNodesRef.current !== initialNodes) {
+      prevInitialNodesRef.current = initialNodes;
+      setNodes(initialNodes);
+    }
+  }, [initialNodes, setNodes]);
+
+  // Debounced position change notification
+  const positionChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Use a ref to access latest nodes without stale closure issues
+  const nodesRef = useRef(nodes);
+  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
+
+  const handleNodeDragStop: NodeMouseHandler = useCallback(
+    (_event, _node) => {
+      if (!onPositionChange) return;
+      if (positionChangeTimerRef.current) clearTimeout(positionChangeTimerRef.current);
+      positionChangeTimerRef.current = setTimeout(() => {
+        const positions: Record<string, { x: number; y: number }> = {};
+        nodesRef.current.forEach((n) => {
+          positions[n.id] = { x: Math.round(n.position.x), y: Math.round(n.position.y) };
+        });
+        onPositionChange(positions);
+      }, 150);
+    },
+    [onPositionChange]
+  );
+
+  const handleResetLayout = useCallback(() => {
+    setNodes(autoNodes);
+    onPositionChange?.({});
+  }, [autoNodes, setNodes, onPositionChange]);
+
   return (
-    <div className="w-full h-[600px] rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden">
+    <div className="relative w-full h-[600px] rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden">
+      {/* Edit mode hint */}
+      {isEditMode && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-orange-50 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-700/50 rounded-full px-3 py-1 shadow-sm pointer-events-none">
+          <GripVertical className="h-3 w-3 text-orange-500" />
+          <span className="text-xs font-medium text-orange-600 dark:text-orange-400">Drag nodes to rearrange</span>
+        </div>
+      )}
+
+      {/* Reset layout button (edit mode only) */}
+      {isEditMode && (
+        <button
+          onClick={handleResetLayout}
+          className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 transition-colors"
+          title="Reset to auto-layout"
+        >
+          <RotateCcw className="h-3 w-3" />
+          Reset layout
+        </button>
+      )}
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        nodesDraggable={false}
+        onNodesChange={onNodesChange}
+        nodesDraggable={isEditMode}
         nodesConnectable={false}
-        elementsSelectable={false}
+        elementsSelectable={isEditMode}
+        snapToGrid={isEditMode}
+        snapGrid={[20, 20]}
+        onNodeDragStop={handleNodeDragStop}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.3}

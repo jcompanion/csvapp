@@ -46,6 +46,8 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [autoSaved, setAutoSaved] = useState(false);
   const isDirtyRef = useRef(false);
+  // Stores latest inline-edited rows separately so result.data stays as original
+  const editedDataRef = useRef<Record<string, string>[] | null>(null);
 
   const supabase = getSupabaseBrowser();
 
@@ -112,12 +114,16 @@ export default function Home() {
     if (!result || !localConfig) return;
     setSaving(true);
     try {
+      // Use editedDataRef rows if the user has made inline edits
+      const dataToSave = editedDataRef.current
+        ? { ...result.data, rows: editedDataRef.current }
+        : result.data;
       const res = await fetch("/api/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           config: localConfig,
-          data: result.data,
+          data: dataToSave,
           existingSlug: savedSlug,
         }),
       });
@@ -136,6 +142,12 @@ export default function Home() {
       setSaving(false);
     }
   };
+
+  // ─── Inline data change callback ─────────────────────────────────────────
+  const handleDataChange = useCallback((newRows: Record<string, string>[]) => {
+    editedDataRef.current = newRows;
+    setIsDirty(true);
+  }, []);
 
   // ─── Share (save + copy link) ─────────────────────────────────────────────
   const handleShare = async () => {
@@ -163,6 +175,7 @@ export default function Home() {
     setSavedSlug(null);
     setShareUrl(null);
     setIsEditMode(false);
+    editedDataRef.current = null; // clear any previous inline edits
 
     // Re-check auth fresh (user might have just signed in)
     const { data: { user: freshUser } } = await supabase.auth.getUser();
@@ -329,6 +342,7 @@ export default function Home() {
             data={result.data}
             isEditMode={isEditMode}
             onConfigChange={handleConfigChange}
+            onDataChange={handleDataChange}
           />
         </main>
       </div>

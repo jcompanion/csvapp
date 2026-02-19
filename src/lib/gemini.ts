@@ -29,6 +29,7 @@ export interface DashboardConfig {
   insights: string[];
   accentColor: string;
   showTable?: boolean;
+  nodePositions?: Record<string, { x: number; y: number }>;
 }
 
 const responseSchema = {

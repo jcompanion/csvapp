@@ -66,6 +66,7 @@ import {
   AlignLeft,
   Eye,
   EyeOff,
+  RotateCcw,
 } from "lucide-react";
 import type { DashboardConfig, ChartConfig } from "@/lib/gemini";
 import { OrgChart } from "@/components/org-chart";
@@ -91,6 +92,7 @@ interface DashboardViewProps {
   };
   isEditMode?: boolean;
   onConfigChange?: (config: DashboardConfig) => void;
+  onDataChange?: (rows: Record<string, string>[]) => void;
 }
 
 // ─── Column helpers ──────────────────────────────────────────────────────────
@@ -741,12 +743,71 @@ function SuggestionCard({
 }
 
 // ─── Main DashboardView ───────────────────────────────────────────────────────
-export function DashboardView({ config, data, isEditMode = false, onConfigChange }: DashboardViewProps) {
+export function DashboardView({ config, data, isEditMode = false, onConfigChange, onDataChange }: DashboardViewProps) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [sortCol, setSortCol] = useState<string | null>(config.table.sortBy || null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [overrides, setOverrides] = useState<Record<string, Record<string, string>>>({});
+
+  // ─── Inline editing state ────────────────────────────────────────────────
+  const [localRows, setLocalRows] = useState<Record<string, string>[]>(() => [...data.rows]);
+  const [editedCells, setEditedCells] = useState<Set<string>>(new Set());
+  const [editingCell, setEditingCell] = useState<{ origIdx: number; col: string } | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  // Keep onDataChange in a ref to avoid stale closures
+  const onDataChangeRef = useRef(onDataChange);
+  useEffect(() => { onDataChangeRef.current = onDataChange; }, [onDataChange]);
+
+  // Debounced notification to parent
+  const dataChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notifyDataChange = useCallback((rows: Record<string, string>[]) => {
+    if (dataChangeTimerRef.current) clearTimeout(dataChangeTimerRef.current);
+    dataChangeTimerRef.current = setTimeout(() => {
+      onDataChangeRef.current?.(rows);
+    }, 300);
+  }, []);
+
+  // Reset localRows when data source changes (new CSV loaded)
+  useEffect(() => {
+    setLocalRows([...data.rows]);
+    setEditedCells(new Set());
+    setEditingCell(null);
+    setEditValue("");
+  }, [data.rows]);
+
+  // Cell editing handlers
+  const handleCellEdit = useCallback((origIdx: number, col: string, currentValue: string) => {
+    if (!isEditMode) return;
+    setEditingCell({ origIdx, col });
+    setEditValue(currentValue);
+  }, [isEditMode]);
+
+  const handleCellSave = useCallback(() => {
+    if (!editingCell) return;
+    const { origIdx, col } = editingCell;
+    const newRows = [...localRows];
+    newRows[origIdx] = { ...newRows[origIdx], [col]: editValue };
+    setLocalRows(newRows);
+    setEditedCells((prev) => new Set([...prev, `${origIdx}-${col}`]));
+    setEditingCell(null);
+    setEditValue("");
+    notifyDataChange(newRows);
+  }, [editingCell, editValue, localRows, notifyDataChange]);
+
+  const handleCellKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") { e.preventDefault(); handleCellSave(); }
+    if (e.key === "Escape") { setEditingCell(null); setEditValue(""); }
+  }, [handleCellSave]);
+
+  const handleResetData = useCallback(() => {
+    const original = [...data.rows];
+    setLocalRows(original);
+    setEditedCells(new Set());
+    setEditingCell(null);
+    setEditValue("");
+    notifyDataChange(original);
+  }, [data.rows, notifyDataChange]);
 
   // Table visibility state — derived from config, synced on config change
   const [showTable, setShowTable] = useState<boolean>(config.showTable ?? true);
@@ -786,8 +847,8 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
 
   // ─── Numeric columns (for AI suggest) ──────────────────────────────────────
   const numericColumns = useMemo(
-    () => data.headers.filter((h) => isNumericColumn(h, data.rows)),
-    [data.headers, data.rows]
+    () => data.headers.filter((h) => isNumericColumn(h, localRows)),
+    [data.headers, localRows]
   );
 
   // ─── KPI stats ──────────────────────────────────────────────────────────────
@@ -801,7 +862,7 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
     result.push({ label: "Columns", value: data.headers.length.toString(), rawNumber: data.headers.length, icon: FileSpreadsheet });
 
     numericColumns.slice(0, 2).forEach((col) => {
-      const vals = data.rows.map((r) => parseNumeric(r[col] || "0")).filter((v) => !isNaN(v));
+      const vals = localRows.map((r) => parseNumeric(r[col] || "0")).filter((v) => !isNaN(v));
       if (!vals.length) return;
       const sum = vals.reduce((a, b) => a + b, 0);
       const mid = Math.floor(vals.length / 2);
@@ -819,22 +880,22 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
     });
 
     if (config.table.statusField) {
-      const statuses = new Set(data.rows.map((r) => r[config.table.statusField!]));
+      const statuses = new Set(localRows.map((r) => r[config.table.statusField!]));
       result.push({ label: "Statuses", value: statuses.size.toString(), rawNumber: statuses.size });
     }
 
     return result.slice(0, 4);
-  }, [data, config, numericColumns]);
+  }, [localRows, data.totalRows, data.headers, config, numericColumns]);
 
-  // ─── Table ──────────────────────────────────────────────────────────────────
-  const filteredRows = useMemo(() => {
-    let rows = data.rows.map((row, i) => ({ ...row, ...overrides[i] }));
+  // ─── Table (with original index tracking for inline edit) ──────────────────
+  const filteredRowsWithMeta = useMemo(() => {
+    let rows = localRows.map((row, i) => ({ row, origIdx: i }));
     if (search) {
       const q = search.toLowerCase();
-      rows = rows.filter((row) => Object.values(row).some((v) => v?.toLowerCase().includes(q)));
+      rows = rows.filter(({ row }) => Object.values(row).some((v) => v?.toLowerCase().includes(q)));
     }
     if (sortCol) {
-      rows.sort((a, b) => {
+      rows.sort(({ row: a }, { row: b }) => {
         const aVal = a[sortCol] || "", bVal = b[sortCol] || "";
         const aNum = parseFloat(aVal), bNum = parseFloat(bVal);
         if (!isNaN(aNum) && !isNaN(bNum)) return sortDir === "asc" ? aNum - bNum : bNum - aNum;
@@ -842,10 +903,19 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
       });
     }
     return rows;
-  }, [data.rows, search, sortCol, sortDir, overrides]);
+  }, [localRows, search, sortCol, sortDir]);
 
-  const handleStatusChange = (rowIndex: number, column: string, newValue: string) => {
-    setOverrides((prev) => ({ ...prev, [rowIndex]: { ...prev[rowIndex], [column]: newValue } }));
+  // Flat version for CSV export
+  const filteredRows = useMemo(
+    () => filteredRowsWithMeta.map(({ row }) => row),
+    [filteredRowsWithMeta]
+  );
+
+  const handleStatusChange = (origIdx: number, column: string, newValue: string) => {
+    const newRows = [...localRows];
+    newRows[origIdx] = { ...newRows[origIdx], [column]: newValue };
+    setLocalRows(newRows);
+    notifyDataChange(newRows);
   };
 
   const handleSort = (col: string) => {
@@ -975,7 +1045,16 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
       {isOrgChart && (
         <div className="chart-animate" style={{ animationDelay: "280ms" }}>
           <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Organization</h2>
-          <OrgChart data={data.rows} headers={data.headers} />
+          <OrgChart
+            data={data.rows}
+            headers={data.headers}
+            isEditMode={isEditMode}
+            savedPositions={config.nodePositions}
+            onPositionChange={(positions) => {
+              if (!onConfigChange) return;
+              onConfigChange({ ...config, nodePositions: positions });
+            }}
+          />
         </div>
       )}
 
@@ -987,7 +1066,7 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
               <ChartCard
                 key={i}
                 chart={chart}
-                data={data.rows}
+                data={localRows}
                 index={i}
                 isEditMode={isEditMode}
                 onEdit={() => setEditingChartIndex(i)}
@@ -1061,7 +1140,7 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
       {/* ── Data Table ── */}
       <Card className="border-gray-200 dark:border-gray-800 shadow-sm rounded-xl chart-animate" style={{ animationDelay: `${(config.charts.length + 2) * 80}ms` }}>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
                 Data
@@ -1077,9 +1156,25 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
               >
                 {showTable ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               </button>
+              {/* Reset data button — edit mode only, visible when there are edits */}
+              {isEditMode && editedCells.size > 0 && (
+                <button
+                  onClick={handleResetData}
+                  className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700/50 rounded-md px-2 py-1 transition-colors"
+                  title="Reset all data edits"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Reset data ({editedCells.size})
+                </button>
+              )}
             </div>
             {showTable && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {isEditMode && (
+                  <span className="text-xs text-orange-500 dark:text-orange-400 font-medium hidden sm:block">
+                    Double-click cells to edit
+                  </span>
+                )}
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
                   <Input placeholder="Search..." className="pl-9 w-[180px] text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -1111,17 +1206,46 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRows.slice(0, 100).map((row, rowIdx) => (
-                    <TableRow key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-white/5 even:bg-gray-50/40 dark:even:bg-white/[0.02]">
-                      {config.table.columns.map((col) => (
-                        <TableCell key={col} className="whitespace-nowrap py-2.5">
-                          {col === config.table.statusField && config.table.statusOptions ? (
-                            <StatusBadge value={row[col] || ""} options={config.table.statusOptions} onChange={(v) => handleStatusChange(rowIdx, col, v)} />
-                          ) : (
-                            <span className="text-sm text-gray-700 dark:text-gray-200">{row[col]}</span>
-                          )}
-                        </TableCell>
-                      ))}
+                  {filteredRowsWithMeta.slice(0, 100).map(({ row, origIdx }) => (
+                    <TableRow key={origIdx} className="hover:bg-gray-50 dark:hover:bg-white/5 even:bg-gray-50/40 dark:even:bg-white/[0.02]">
+                      {config.table.columns.map((col) => {
+                        const isEditingThisCell = editingCell?.origIdx === origIdx && editingCell?.col === col;
+                        const isEdited = editedCells.has(`${origIdx}-${col}`);
+                        const isStatusCell = col === config.table.statusField && config.table.statusOptions;
+
+                        return (
+                          <TableCell
+                            key={col}
+                            className={`whitespace-nowrap py-2.5 transition-colors ${isEdited && !isEditingThisCell ? "bg-amber-50 dark:bg-amber-950/20" : ""}`}
+                          >
+                            {isStatusCell ? (
+                              <StatusBadge
+                                value={row[col] || ""}
+                                options={config.table.statusOptions!}
+                                onChange={(v) => handleStatusChange(origIdx, col, v)}
+                              />
+                            ) : isEditingThisCell ? (
+                              <input
+                                autoFocus
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={handleCellSave}
+                                onKeyDown={handleCellKeyDown}
+                                className="w-full min-w-[80px] text-sm px-1.5 py-0.5 border border-orange-400 rounded focus:outline-none focus:ring-2 focus:ring-orange-400/30 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                              />
+                            ) : (
+                              <span
+                                className={`text-sm text-gray-700 dark:text-gray-200 ${isEditMode ? "cursor-pointer select-none rounded px-0.5 hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors" : ""}`}
+                                onDoubleClick={() => isEditMode && !isStatusCell && handleCellEdit(origIdx, col, row[col] || "")}
+                                onTouchEnd={isEditMode && !isStatusCell ? (e) => { e.preventDefault(); handleCellEdit(origIdx, col, row[col] || ""); } : undefined}
+                                title={isEditMode && !isStatusCell ? "Double-click to edit" : undefined}
+                              >
+                                {row[col]}
+                              </span>
+                            )}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -1138,7 +1262,7 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
         chart={editingChart}
         index={editingChartIndex ?? 0}
         headers={data.headers}
-        rows={data.rows}
+        rows={localRows}
         onSave={(updated) => {
           if (editingChartIndex !== null) handleChartUpdate(editingChartIndex, updated);
         }}
