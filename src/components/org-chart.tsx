@@ -78,6 +78,17 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
+// Role icon based on title
+function getRoleIcon(title?: string): string {
+  if (!title) return "●";
+  const t = title.toLowerCase();
+  if (t.includes("ceo") || t.includes("cto") || t.includes("cfo") || t.includes("coo") || t.includes("chief")) return "⭐";
+  if (t.includes("vp") || t.includes("vice president") || t.includes("director")) return "★";
+  if (t.includes("manager") || t.includes("lead") || t.includes("head")) return "◆";
+  if (t.includes("senior") || t.includes("sr.") || t.includes("principal")) return "▲";
+  return "●";
+}
+
 // Custom node component
 function OrgNode({ data }: NodeProps) {
   const [flipped, setFlipped] = useState(false);
@@ -112,10 +123,15 @@ function OrgNode({ data }: NodeProps) {
           style={{ backfaceVisibility: "hidden" }}
         >
           <div className="flex items-center gap-3">
-            <div
-              className={`h-10 w-10 rounded-full ${deptColor.border} border-2 flex items-center justify-center text-sm font-bold ${deptColor.text}`}
-            >
-              {getInitials(name)}
+            <div className="relative">
+              <div
+                className={`h-10 w-10 rounded-full ${deptColor.border} border-2 flex items-center justify-center text-sm font-bold ${deptColor.text}`}
+              >
+                {getInitials(name)}
+              </div>
+              <span className="absolute -top-1 -right-1 text-[10px]" title={title}>
+                {getRoleIcon(title)}
+              </span>
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-sm text-white truncate">{name}</p>
@@ -199,90 +215,99 @@ export function OrgChart({ data, headers }: OrgChartProps) {
       }
     });
 
-    // BFS to assign levels and positions
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     const NODE_W = 260;
-    const NODE_H = 140;
+    const NODE_H = 160;
 
-    type QueueItem = { idx: number; level: number };
-    const queue: QueueItem[] = roots.map((idx) => ({ idx, level: 0 }));
+    // Recursive tree layout — each subtree gets its own width allocation
+    function getSubtreeWidth(idx: number): number {
+      const children = childrenOf.get(idx) || [];
+      if (children.length === 0) return NODE_W;
+      return children.reduce((sum, c) => sum + getSubtreeWidth(c), 0) + (children.length - 1) * 20;
+    }
+
     const visited = new Set<number>();
-    const levelItems: Map<number, number[]> = new Map();
 
-    // Gather items per level
-    while (queue.length > 0) {
-      const { idx, level } = queue.shift()!;
-      if (visited.has(idx)) continue;
+    function layoutNode(idx: number, x: number, y: number) {
+      if (visited.has(idx)) return;
       visited.add(idx);
 
-      levelItems.set(level, [...(levelItems.get(level) || []), idx]);
+      const person = people[idx];
+      nodes.push({
+        id: String(idx),
+        type: "orgNode",
+        position: { x, y },
+        data: { person, cols },
+      });
 
+      // Edge to parent
+      const reportsTo = cols.reportsTo ? person[cols.reportsTo] : undefined;
+      if (reportsTo && reportsTo.trim()) {
+        const parentIdx = nameToIndex.get(reportsTo.toLowerCase());
+        if (parentIdx !== undefined) {
+          edges.push({
+            id: `e-${parentIdx}-${idx}`,
+            source: String(parentIdx),
+            target: String(idx),
+            type: "smoothstep",
+            style: { stroke: "rgba(255,255,255,0.15)", strokeWidth: 2 },
+            animated: false,
+          });
+        }
+      }
+
+      // Layout children
       const children = childrenOf.get(idx) || [];
+      if (children.length === 0) return;
+
+      const totalWidth = children.reduce((sum, c) => sum + getSubtreeWidth(c), 0) + (children.length - 1) * 20;
+      let childX = x + NODE_W / 2 - totalWidth / 2;
+
       children.forEach((childIdx) => {
-        queue.push({ idx: childIdx, level: level + 1 });
+        const childW = getSubtreeWidth(childIdx);
+        layoutNode(childIdx, childX + childW / 2 - NODE_W / 2, y + NODE_H);
+        childX += childW + 20;
       });
     }
 
-    // Position nodes centered per level
-    const maxWidth = Math.max(...Array.from(levelItems.values()).map((v) => v.length));
-    levelItems.forEach((items, level) => {
-      const totalWidth = items.length * NODE_W;
-      const startX = (maxWidth * NODE_W - totalWidth) / 2;
-
-      items.forEach((idx, i) => {
-        const person = people[idx];
-        nodes.push({
-          id: String(idx),
-          type: "orgNode",
-          position: { x: startX + i * NODE_W, y: level * NODE_H },
-          data: { person, cols },
-        });
-
-        // Edge to parent
-        const reportsTo = cols.reportsTo ? person[cols.reportsTo] : undefined;
-        if (reportsTo && reportsTo.trim()) {
-          const parentIdx = nameToIndex.get(reportsTo.toLowerCase());
-          if (parentIdx !== undefined) {
-            edges.push({
-              id: `e-${parentIdx}-${idx}`,
-              source: String(parentIdx),
-              target: String(idx),
-              type: "smoothstep",
-              style: { stroke: "rgba(255,255,255,0.15)", strokeWidth: 2 },
-              animated: false,
-            });
-          }
-        }
-      });
+    // Layout each root tree centered
+    const totalRootWidth = roots.reduce((sum, r) => sum + getSubtreeWidth(r), 0) + (roots.length - 1) * 60;
+    let rootX = -totalRootWidth / 2;
+    roots.forEach((rootIdx) => {
+      const w = getSubtreeWidth(rootIdx);
+      layoutNode(rootIdx, rootX + w / 2 - NODE_W / 2, 0);
+      rootX += w + 60;
     });
 
-    // Handle any unvisited nodes (disconnected)
+    // Handle disconnected nodes
     people.forEach((person, idx) => {
       if (!visited.has(idx)) {
         nodes.push({
           id: String(idx),
           type: "orgNode",
-          position: { x: nodes.length * NODE_W, y: 0 },
+          position: { x: rootX, y: 0 },
           data: { person, cols },
         });
+        rootX += NODE_W + 20;
       }
     });
 
     return { nodes, edges };
   }, [data, cols]);
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes] = useNodesState(initialNodes);
+  const [edges] = useEdgesState(initialEdges);
 
   return (
     <div className="w-full h-[600px] rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
         fitView
         fitViewOptions={{ padding: 0.3 }}
         minZoom={0.3}
