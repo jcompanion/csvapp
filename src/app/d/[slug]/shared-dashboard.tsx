@@ -36,11 +36,18 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
 
   const embedCode = `<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/${slug}" width="100%" height="600" frameborder="0" style="border-radius: 12px; border: 1px solid #e5e7eb;"></iframe>`;
 
-  // Check if current user is the dashboard owner
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check auth state — any logged-in user can edit, save requires ownership
   useEffect(() => {
-    if (!userId) return;
     supabase.auth.getUser().then(({ data: userData }) => {
-      if (userData.user?.id === userId) setIsOwner(true);
+      if (userData.user) {
+        setIsLoggedIn(true);
+        // Owner if: no owner set (legacy) OR user matches
+        if (!userId || userData.user.id === userId) {
+          setIsOwner(true);
+        }
+      }
     });
   }, [userId]);
 
@@ -109,35 +116,34 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
               <Code className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Embed</span>
             </Button>
-            {isOwner && (
-              <>
-                <Button
-                  variant={isEditMode ? "default" : "ghost"}
-                  size="sm"
-                  className={`text-xs gap-1.5 ${isEditMode ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
-                  onClick={() => setIsEditMode(!isEditMode)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">{isEditMode ? "Done" : "Edit"}</span>
-                </Button>
-                {isDirty && (
-                  <Button
-                    size="sm"
-                    className="text-xs gap-1.5 bg-green-600 hover:bg-green-700 text-white"
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? (
-                      <span className="animate-spin h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full" />
-                    ) : saved ? (
-                      <Check className="h-3.5 w-3.5" />
-                    ) : (
-                      <Save className="h-3.5 w-3.5" />
-                    )}
-                    <span className="hidden sm:inline">{saving ? "Saving..." : saved ? "Saved!" : "Save"}</span>
-                  </Button>
+            <Button
+              variant={isEditMode ? "default" : "ghost"}
+              size="sm"
+              className={`text-xs gap-1.5 ${isEditMode ? "bg-orange-500 hover:bg-orange-600 text-white" : ""}`}
+              onClick={() => setIsEditMode(!isEditMode)}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{isEditMode ? "Done" : "Edit"}</span>
+            </Button>
+            {isDirty && isOwner && (
+              <Button
+                size="sm"
+                className="text-xs gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <span className="animate-spin h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full" />
+                ) : saved ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
                 )}
-              </>
+                <span className="hidden sm:inline">{saving ? "Saving..." : saved ? "Saved!" : "Save"}</span>
+              </Button>
+            )}
+            {isDirty && !isOwner && (
+              <span className="text-xs text-orange-400 hidden sm:inline">Sign in to save</span>
             )}
             <ThemeToggle />
             <Link href="/">
@@ -181,7 +187,7 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
           config={localConfig}
           data={data}
           isEditMode={isEditMode}
-          onConfigChange={isOwner ? handleConfigChange : undefined}
+          onConfigChange={handleConfigChange}
         />
       </main>
     </div>
