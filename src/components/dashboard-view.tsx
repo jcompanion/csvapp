@@ -414,7 +414,10 @@ export function DashboardView({ config, data }: DashboardViewProps) {
       <Card className="border-gray-200 dark:border-white/10 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-gray-900 dark:text-white">Data</CardTitle>
+            <CardTitle className="text-lg text-gray-900 dark:text-white">
+              Data
+              <span className="ml-2 text-xs font-normal text-gray-400">{filteredRows.length} rows{filteredRows.length > 100 ? " (showing first 100)" : ""}</span>
+            </CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
@@ -440,13 +443,15 @@ export function DashboardView({ config, data }: DashboardViewProps) {
                   {config.table.columns.map((col) => (
                     <TableHead
                       key={col}
-                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 whitespace-nowrap text-gray-600 dark:text-gray-300"
+                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 whitespace-nowrap text-gray-600 dark:text-gray-300 group"
                       onClick={() => handleSort(col)}
                     >
                       <div className="flex items-center gap-1">
                         {col}
-                        {sortCol === col && (
-                          <ArrowUpDown className="h-3 w-3" />
+                        {sortCol === col ? (
+                          <span className="text-orange-500">{sortDir === "asc" ? "↑" : "↓"}</span>
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 opacity-0 group-hover:opacity-30" />
                         )}
                       </div>
                     </TableHead>
