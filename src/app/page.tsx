@@ -18,6 +18,8 @@ import {
   Loader2,
   Star,
   Upload,
+  Link as LinkIcon,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +28,31 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export default function Home() {
   const [result, setResult] = useState<{ config: any; data: any } | null>(null);
   const [loadingSample, setLoadingSample] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    if (!result) return;
+    setSharing(true);
+    try {
+      const res = await fetch("/api/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: result.config, data: result.data }),
+      });
+      if (res.ok) {
+        const { slug } = await res.json();
+        const url = `${window.location.origin}/d/${slug}`;
+        setShareUrl(url);
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   const loadSample = async (file: string) => {
     setLoadingSample(file);
@@ -65,7 +92,31 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setResult(null)}
+                onClick={handleShare}
+                disabled={sharing}
+                className="text-xs gap-1.5"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                    Copied!
+                  </>
+                ) : sharing ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <LinkIcon className="h-3.5 w-3.5" />
+                    Share
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setResult(null); setShareUrl(null); }}
                 className="text-xs"
               >
                 Upload new CSV
