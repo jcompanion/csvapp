@@ -412,6 +412,27 @@ function renderChartContent(
 // ─── Chart data builder (shared) ─────────────────────────────────────────────
 function buildChartData(chart: ChartConfig, rows: Record<string, string>[]) {
   if (!rows.length) return [];
+  
+  // Validate that xAxis and yAxis columns actually exist in the data
+  const sampleRow = rows[0];
+  const xExists = chart.xAxis && getColValue(sampleRow, chart.xAxis) !== undefined;
+  const yExists = chart.yAxis && getColValue(sampleRow, chart.yAxis) !== undefined;
+  
+  if (!xExists || !yExists) {
+    // Try to auto-detect: find a categorical and numeric column
+    const headers = Object.keys(sampleRow);
+    const numericHeaders = headers.filter(h => {
+      const vals = rows.slice(0, 10).map(r => r[h]).filter(Boolean);
+      return vals.filter(v => !isNaN(parseFloat(v.replace(/[$,%]/g, "").replace(/,/g, "")))).length > vals.length * 0.4;
+    });
+    const catHeaders = headers.filter(h => !numericHeaders.includes(h));
+    
+    if (!xExists && catHeaders.length > 0) chart = { ...chart, xAxis: catHeaders[0] };
+    else if (!xExists && headers.length > 0) chart = { ...chart, xAxis: headers[0] };
+    
+    if (!yExists && numericHeaders.length > 0) chart = { ...chart, yAxis: numericHeaders[0] };
+    else if (!yExists) return []; // Can't build any chart without numeric data
+  }
 
   if (chart.type === "pie") {
     const grouped: Record<string, number> = {};
@@ -420,22 +441,33 @@ function buildChartData(chart: ChartConfig, rows: Record<string, string>[]) {
       const val = parseNumeric(getColValue(row, chart.yAxis));
       grouped[key] = (grouped[key] || 0) + (isNaN(val) ? 1 : val);
     });
-    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    const entries = Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    // Limit pie slices to 10, group rest as "Other"
+    if (entries.length > 10) {
+      entries.sort((a, b) => b.value - a.value);
+      const top = entries.slice(0, 9);
+      const otherVal = entries.slice(9).reduce((s, e) => s + e.value, 0);
+      return [...top, { name: "Other", value: otherVal }];
+    }
+    return entries;
   }
 
   if (chart.type === "bar" || chart.type === "horizontalBar") {
     const grouped: Record<string, number> = {};
+    const order: string[] = []; // preserve insertion order for time series
     rows.forEach((row) => {
       const key = getColValue(row, chart.xAxis) || "Unknown";
       const val = parseNumeric(getColValue(row, chart.yAxis));
+      if (!(key in grouped)) order.push(key);
       grouped[key] = (grouped[key] || 0) + (isNaN(val) ? 0 : val);
     });
-    const entries = Object.entries(grouped).filter(([, v]) => v !== 0).map(([name, value]) => ({ name, value }));
+    let entries = order.map(name => ({ name, value: grouped[name] }));
+    // Don't filter out zeros — they're valid data points for time series
     if (chart.type === "horizontalBar") entries.sort((a, b) => b.value - a.value);
-    return entries.slice(0, 20);
+    return entries.slice(0, 30);
   }
 
-  // Line / area
+  // Line / area fallback (shouldn't reach here after remap, but just in case)
   const seen = new Set<string>();
   const deduped: Record<string, string>[] = [];
   for (const row of rows) {

@@ -33,12 +33,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send to Gemini for analysis
-    const config = await analyzeCsvWithGemini(
-      parsed.headers,
-      parsed.rows,
-      actualTotalRows
-    );
+    // Send to Gemini for analysis with retry
+    let config;
+    let lastError;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        config = await analyzeCsvWithGemini(
+          parsed.headers,
+          parsed.rows,
+          actualTotalRows
+        );
+        // Verify at least one chart was generated
+        if (config.charts && config.charts.length > 0) break;
+      } catch (e) {
+        lastError = e;
+        console.error(`Gemini attempt ${attempt + 1} failed:`, e);
+      }
+    }
+    if (!config) throw lastError || new Error("Analysis failed after retries");
 
     return NextResponse.json({
       config,
