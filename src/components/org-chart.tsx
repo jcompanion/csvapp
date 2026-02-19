@@ -148,7 +148,7 @@ function OrgNode({ data }: NodeProps) {
       onClick={() => setFlipped(!flipped)}
       style={{ perspective: "1000px" }}
     >
-      <Handle type="target" position={Position.Top} className="!bg-white/20 !border-white/30 !w-2 !h-2" />
+      <Handle type="target" position={Position.Top} className="!bg-gray-300 !border-gray-400 !w-2 !h-2" />
 
       <div
         className="transition-transform duration-500"
@@ -167,7 +167,7 @@ function OrgNode({ data }: NodeProps) {
             ...(useClipPath ? { clipPath: shape.clipPath } : {}),
             padding: isCircle ? "20px" : useClipPath ? "30px 16px" : "16px",
             border: useClipPath ? "none" : undefined,
-            boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.1)"}`,
+            boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(0,0,0,0.06)"}`,
           }}
         >
           <div
@@ -175,9 +175,9 @@ function OrgNode({ data }: NodeProps) {
           >
             {getInitials(name)}
           </div>
-          <p className="font-semibold text-xs text-white truncate max-w-full">{name}</p>
+          <p className="font-semibold text-xs text-gray-900 truncate max-w-full">{name}</p>
           {title && (
-            <p className="text-[10px] text-white/60 truncate max-w-full">{title}</p>
+            <p className="text-[10px] text-gray-900/60 truncate max-w-full">{title}</p>
           )}
           {department && !isCircle && (
             <span className={`text-[9px] px-2 py-0.5 rounded-full border ${deptColor.border} ${deptColor.text} mt-1`}>
@@ -185,7 +185,7 @@ function OrgNode({ data }: NodeProps) {
             </span>
           )}
           {bio && (
-            <p className="text-[9px] text-white/25 mt-1">tap to flip</p>
+            <p className="text-[9px] text-gray-900/25 mt-1">tap to flip</p>
           )}
         </div>
 
@@ -199,20 +199,20 @@ function OrgNode({ data }: NodeProps) {
             transform: "rotateY(180deg)",
             ...(useClipPath ? { clipPath: shape.clipPath } : {}),
             padding: isCircle ? "20px" : useClipPath ? "30px 16px" : "16px",
-            boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.1)"}`,
+            boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(0,0,0,0.06)"}`,
           }}
         >
-          <p className="font-semibold text-xs text-white mb-1">{name}</p>
+          <p className="font-semibold text-xs text-gray-900 mb-1">{name}</p>
           {bio ? (
-            <p className="text-[10px] text-white/70 leading-relaxed line-clamp-4">{bio}</p>
+            <p className="text-[10px] text-gray-900/70 leading-relaxed line-clamp-4">{bio}</p>
           ) : (
-            <p className="text-[10px] text-white/40 italic">No bio</p>
+            <p className="text-[10px] text-gray-900/40 italic">No bio</p>
           )}
-          <p className="text-[9px] text-white/25 mt-1">tap to flip back</p>
+          <p className="text-[9px] text-gray-900/25 mt-1">tap to flip back</p>
         </div>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!bg-white/20 !border-white/30 !w-2 !h-2" />
+      <Handle type="source" position={Position.Bottom} className="!bg-gray-300 !border-gray-400 !w-2 !h-2" />
     </div>
   );
 }
@@ -286,7 +286,7 @@ export function OrgChart({ data, headers }: OrgChartProps) {
             source: String(parentIdx),
             target: String(idx),
             type: "smoothstep",
-            style: { stroke: "rgba(255,255,255,0.15)", strokeWidth: 2 },
+            style: { stroke: "rgba(0,0,0,0.1)", strokeWidth: 2 },
             animated: false,
           });
         }
@@ -335,7 +335,7 @@ export function OrgChart({ data, headers }: OrgChartProps) {
   const [edges] = useEdgesState(initialEdges);
 
   return (
-    <div className="w-full h-[600px] rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+    <div className="w-full h-[600px] rounded-xl border border-gray-200 bg-gray-50/50 overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -349,9 +349,9 @@ export function OrgChart({ data, headers }: OrgChartProps) {
         maxZoom={1.5}
         proOptions={{ hideAttribution: true }}
       >
-        <Background color="rgba(255,255,255,0.03)" gap={20} />
+        <Background color="rgba(0,0,0,0.02)" gap={20} />
         <Controls
-          className="!bg-neutral-900 !border-white/10 !rounded-lg [&>button]:!bg-neutral-800 [&>button]:!border-white/10 [&>button]:!text-white [&>button:hover]:!bg-neutral-700"
+          className="!bg-white !border-gray-200 !rounded-lg [&>button]:!bg-white [&>button]:!border-gray-200 [&>button]:!text-gray-900 [&>button:hover]:!bg-gray-50"
         />
       </ReactFlow>
     </div>

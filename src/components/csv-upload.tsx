@@ -22,7 +22,6 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
 
       try {
         const text = await file.text();
-
         const response = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -70,10 +69,10 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
     <div
       className={`relative rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 ${
         isDragging
-          ? "border-emerald-400/50 bg-emerald-500/5"
+          ? "border-orange-400 bg-orange-50"
           : isLoading
-          ? "border-white/10 bg-white/[0.02]"
-          : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+          ? "border-gray-200 bg-gray-50"
+          : "border-gray-200 bg-gray-50/50 hover:border-orange-300 hover:bg-orange-50/50"
       }`}
       onDragOver={(e) => {
         e.preventDefault();
@@ -84,41 +83,39 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
     >
       {isLoading ? (
         <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-emerald-400 animate-pulse" />
-            </div>
+          <div className="h-14 w-14 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center">
+            <Sparkles className="h-6 w-6 text-orange-500 animate-pulse" />
           </div>
           <div>
-            <p className="text-lg font-semibold">Analyzing {fileName}...</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-lg font-semibold text-gray-900">Analyzing {fileName}...</p>
+            <p className="text-sm text-gray-500 mt-1">
               AI is reading your data and building the perfect dashboard
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
             <Loader2 className="h-3 w-3 animate-spin" />
             Usually takes 2-5 seconds
           </div>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+          <div className="h-14 w-14 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
             {fileName ? (
-              <FileSpreadsheet className="h-6 w-6 text-emerald-400" />
+              <FileSpreadsheet className="h-6 w-6 text-orange-500" />
             ) : (
-              <Upload className="h-6 w-6 text-muted-foreground" />
+              <Upload className="h-6 w-6 text-gray-400" />
             )}
           </div>
           <div>
-            <p className="text-lg font-semibold">
+            <p className="text-lg font-semibold text-gray-900">
               {fileName || "Drop your CSV here"}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               or click to browse — we&apos;ll handle the rest
             </p>
           </div>
           <Button
-            className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-semibold hover:opacity-90 transition-opacity"
+            className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 transition-opacity rounded-full px-6"
             asChild
           >
             <label className="cursor-pointer">
@@ -132,7 +129,7 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
             </label>
           </Button>
           {error && (
-            <p className="text-sm text-red-400">{error}</p>
+            <p className="text-sm text-red-500">{error}</p>
           )}
         </div>
       )}

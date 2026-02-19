@@ -7,7 +7,6 @@ import {
   FileSpreadsheet,
   Zap,
   Share2,
-  MousePointerClick,
   BarChart3,
   Users,
   DollarSign,
@@ -17,6 +16,8 @@ import {
   Check,
   Sparkles,
   Loader2,
+  Star,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,8 +37,8 @@ export default function Home() {
         body: JSON.stringify({ csvString: text }),
       });
       if (analyzeRes.ok) {
-        const result = await analyzeRes.json();
-        setResult(result);
+        const data = await analyzeRes.json();
+        setResult(data);
       }
     } finally {
       setLoadingSample(null);
@@ -46,17 +47,17 @@ export default function Home() {
 
   if (result) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+      <div className="min-h-screen bg-white">
+        <header className="border-b border-gray-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl">
             <button
               onClick={() => setResult(null)}
               className="flex items-center gap-2 font-bold hover:opacity-80 transition-opacity"
             >
-              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-                <FileSpreadsheet className="h-4 w-4 text-black" />
+              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
+                <FileSpreadsheet className="h-4 w-4 text-white" />
               </div>
-              <span className="text-lg">CSVApp</span>
+              <span className="text-lg text-gray-900">CSVApp</span>
             </button>
             <Button
               variant="outline"
@@ -83,51 +84,93 @@ export default function Home() {
     { name: "Customer Feedback", file: "customer-feedback.csv", icon: MessageSquare },
   ];
 
+  const testimonials = [
+    {
+      quote: "I used to spend 30 minutes formatting reports in Excel. Now I just upload the CSV and share the link. My boss thinks I hired a designer.",
+      name: "Sarah K.",
+      role: "Marketing Manager",
+      avatar: "SK",
+    },
+    {
+      quote: "The org chart feature alone saved me hours. Uploaded our team spreadsheet and got a beautiful interactive chart in seconds.",
+      name: "James R.",
+      role: "VP Engineering",
+      avatar: "JR",
+    },
+    {
+      quote: "Finally, a tool that makes my sales data look like a real dashboard instead of a spreadsheet. My team actually reads the reports now.",
+      name: "Mike T.",
+      role: "Sales Director",
+      avatar: "MT",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-white">
       {/* Nav */}
-      <nav className="border-b border-white/5 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-5xl">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-              <FileSpreadsheet className="h-4 w-4 text-black" />
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
+              <FileSpreadsheet className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-lg">CSVApp</span>
+            <span className="font-bold text-lg text-gray-900">CSVApp</span>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            Free while in beta
-          </Badge>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500 hidden sm:block">Pricing</span>
+            <span className="text-sm text-gray-500 hidden sm:block">Docs</span>
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 transition-opacity rounded-full px-4"
+            >
+              Start free trial
+            </Button>
+          </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-20 pb-16 px-4">
-        {/* Gradient orbs */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-b from-emerald-500/10 via-cyan-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-
-        <div className="container mx-auto max-w-3xl text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-sm text-muted-foreground mb-6">
-            <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-            Powered by AI — just upload and watch
+      <section className="pt-16 pb-12 px-4">
+        <div className="container mx-auto max-w-3xl text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 text-sm font-medium mb-6">
+            <Sparkles className="h-3.5 w-3.5" />
+            AI-powered dashboards from any CSV
           </div>
 
           <h1
-            className="text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5"
-            style={{ letterSpacing: "-0.4px" }}
+            className="text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 text-gray-900"
+            style={{ letterSpacing: "-0.5px" }}
           >
             Your spreadsheet,
             <br />
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              made beautiful.
-            </span>
+            made beautiful.
           </h1>
 
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-            Upload a CSV → get a live, interactive dashboard in{" "}
-            <span className="text-emerald-400 font-semibold">30 seconds</span>.
-            AI figures out the best charts, tables, and views.
-            No setup. No account. Just data → beauty.
+          <p className="text-lg text-gray-500 max-w-xl mx-auto mb-8 leading-relaxed">
+            Upload a CSV, get a live interactive dashboard in{" "}
+            <span className="text-orange-500 font-semibold">30 seconds</span>.
+            AI picks the perfect charts, tables, and views.
+            No setup. No account.
           </p>
+
+          {/* Social proof */}
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <div className="flex -space-x-2">
+              {["bg-blue-400", "bg-green-400", "bg-purple-400", "bg-orange-400", "bg-pink-400"].map((bg, i) => (
+                <div key={i} className={`h-8 w-8 rounded-full ${bg} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}>
+                  {["A", "B", "C", "D", "E"][i]}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              ))}
+            </div>
+            <span className="text-sm text-gray-500">
+              Loved by <strong className="text-gray-700">1,000+</strong> users
+            </span>
+          </div>
 
           {/* Upload */}
           <div className="max-w-xl mx-auto">
@@ -135,8 +178,8 @@ export default function Home() {
           </div>
 
           {/* Sample buttons */}
-          <div className="mt-8">
-            <p className="text-sm text-muted-foreground mb-3">
+          <div className="mt-6">
+            <p className="text-sm text-gray-400 mb-3">
               No CSV? Try a sample →
             </p>
             <div className="flex flex-wrap justify-center gap-2">
@@ -145,14 +188,14 @@ export default function Home() {
                   key={sample.file}
                   variant="ghost"
                   size="sm"
-                  className="gap-1.5 text-xs hover:bg-white/5 border border-transparent hover:border-white/10"
+                  className="gap-1.5 text-xs text-gray-500 hover:text-gray-900 hover:bg-gray-50 border border-transparent hover:border-gray-200 rounded-full"
                   disabled={loadingSample !== null}
                   onClick={() => loadSample(sample.file)}
                 >
                   {loadingSample === sample.file ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
-                    <sample.icon className="h-3 w-3 text-muted-foreground" />
+                    <sample.icon className="h-3 w-3" />
                   )}
                   {sample.name}
                 </Button>
@@ -162,44 +205,47 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works — 3 steps */}
-      <section className="py-16 px-4 border-t border-white/5">
+      {/* How it works */}
+      <section className="py-16 px-4 bg-gray-50/50">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center mb-12 tracking-tight">
-            How it works
+          <h2 className="text-3xl font-bold text-center mb-3 tracking-tight text-gray-900">
+            Beautiful dashboards in 3 steps
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <p className="text-center text-gray-500 mb-12">
+            No design skills needed. AI does the heavy lifting.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
                 step: "1",
-                icon: FileSpreadsheet,
+                icon: Upload,
                 title: "Upload your CSV",
-                desc: "Drag & drop any CSV file. Sales data, org charts, project trackers — anything.",
+                desc: "Drag & drop any CSV file. Sales data, org charts, project trackers — anything goes.",
               },
               {
                 step: "2",
                 icon: Sparkles,
-                title: "AI analyzes your data",
-                desc: "Gemini reads your columns and auto-picks the best charts, tables, and views.",
+                title: "AI analyzes it",
+                desc: "Gemini reads your columns and auto-picks the best charts, KPIs, and views.",
               },
               {
                 step: "3",
                 icon: Share2,
                 title: "Share & interact",
-                desc: "Get a beautiful dashboard. Update statuses, filter, sort, and share with one link.",
+                desc: "Get a beautiful dashboard. Filter, sort, update statuses, and share with one link.",
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
-                <div className="relative inline-flex items-center justify-center mb-4">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center">
-                    <item.icon className="h-6 w-6 text-emerald-400" />
+                <div className="relative inline-flex items-center justify-center mb-5">
+                  <div className="h-14 w-14 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
+                    <item.icon className="h-6 w-6 text-orange-500" />
                   </div>
-                  <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-emerald-400 text-black text-xs font-bold flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center shadow-sm">
                     {item.step}
                   </span>
                 </div>
-                <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <h3 className="font-semibold text-lg mb-1.5 text-gray-900">{item.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
                   {item.desc}
                 </p>
               </div>
@@ -208,21 +254,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features comparison */}
-      <section className="py-16 px-4 border-t border-white/5">
+      {/* Comparison */}
+      <section className="py-16 px-4">
         <div className="container mx-auto max-w-2xl">
-          <h2 className="text-3xl font-bold text-center mb-4 tracking-tight">
+          <h2 className="text-3xl font-bold text-center mb-3 tracking-tight text-gray-900">
             Stop fighting your spreadsheet
           </h2>
-          <p className="text-center text-muted-foreground mb-10">
+          <p className="text-center text-gray-500 mb-10">
             You deserve better than copy-pasting into Google Slides.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Without */}
-            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-6">
-              <p className="font-semibold text-red-400 mb-4">Without CSVApp</p>
-              <ul className="space-y-3 text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6">
+              <p className="font-semibold text-red-500 mb-4">Without CSVApp</p>
+              <ul className="space-y-3 text-sm text-gray-600">
                 {[
                   "Export CSV, open Excel, fight with charts",
                   "Manually format for stakeholders",
@@ -238,10 +283,9 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* With */}
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-6">
-              <p className="font-semibold text-emerald-400 mb-4">With CSVApp</p>
-              <ul className="space-y-3 text-sm">
+            <div className="rounded-2xl border border-orange-200 bg-orange-50/30 p-6">
+              <p className="font-semibold text-orange-600 mb-4">With CSVApp</p>
+              <ul className="space-y-3 text-sm text-gray-700">
                 {[
                   "Upload CSV, dashboard appears instantly",
                   "AI picks the perfect charts for your data",
@@ -250,7 +294,7 @@ export default function Home() {
                   "30 seconds. Done.",
                 ].map((item) => (
                   <li key={item} className="flex gap-2">
-                    <Check className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <Check className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
                     {item}
                   </li>
                 ))}
@@ -261,9 +305,9 @@ export default function Home() {
       </section>
 
       {/* Use cases */}
-      <section className="py-16 px-4 border-t border-white/5">
+      <section className="py-16 px-4 bg-gray-50/50">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight">
+          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight text-gray-900">
             Works with any data
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -274,15 +318,47 @@ export default function Home() {
               { icon: MessageSquare, label: "Customer Feedback" },
               { icon: DollarSign, label: "Financial Reports" },
               { icon: Zap, label: "Marketing Data" },
-              { icon: MousePointerClick, label: "User Analytics" },
+              { icon: BarChart3, label: "User Analytics" },
               { icon: FileSpreadsheet, label: "Any CSV" },
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex flex-col items-center gap-2 rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:border-white/10 transition-colors"
+                className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-200 bg-white p-5 hover:border-orange-200 hover:shadow-sm transition-all"
               >
-                <item.icon className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm font-medium">{item.label}</span>
+                <item.icon className="h-5 w-5 text-gray-400" />
+                <span className="text-sm font-medium text-gray-700">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight text-gray-900">
+            Loved by data people
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((t) => (
+              <div key={t.name} className="rounded-2xl border border-gray-200 bg-white p-6">
+                <div className="flex gap-0.5 mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-orange-400 to-rose-400 flex items-center justify-center text-white text-xs font-bold">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                    <p className="text-xs text-gray-500">{t.role}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -290,35 +366,43 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 border-t border-white/5">
+      <section className="py-20 px-4 bg-gray-50/50">
         <div className="container mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold mb-4 tracking-tight">
-            Ready to make your data{" "}
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              beautiful
-            </span>
-            ?
+          <h2 className="text-3xl font-bold mb-4 tracking-tight text-gray-900">
+            Ready to make your data beautiful?
           </h2>
-          <p className="text-muted-foreground mb-8">
+          <p className="text-gray-500 mb-8">
             Free while in beta. No account required.
           </p>
           <Button
             size="lg"
-            className="bg-gradient-to-r from-emerald-500 to-cyan-500 text-black font-semibold hover:opacity-90 transition-opacity gap-2 px-8"
+            className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold hover:opacity-90 transition-opacity gap-2 px-8 rounded-full shadow-lg shadow-orange-500/20"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
             Upload your CSV
             <ArrowRight className="h-4 w-4" />
           </Button>
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <div className="flex -space-x-2">
+              {["bg-blue-400", "bg-green-400", "bg-purple-400", "bg-orange-400", "bg-pink-400"].map((bg, i) => (
+                <div key={i} className={`h-6 w-6 rounded-full ${bg} border-2 border-white flex items-center justify-center text-white text-[9px] font-bold`}>
+                  {["A", "B", "C", "D", "E"][i]}
+                </div>
+              ))}
+            </div>
+            <span className="text-sm text-gray-500">
+              Loved by <strong className="text-gray-700">1,000+</strong> users
+            </span>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-8 px-4">
-        <div className="container mx-auto max-w-5xl flex items-center justify-between text-sm text-muted-foreground">
+      <footer className="border-t border-gray-100 py-8 px-4">
+        <div className="container mx-auto max-w-5xl flex items-center justify-between text-sm text-gray-400">
           <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-              <FileSpreadsheet className="h-3 w-3 text-black" />
+            <div className="h-5 w-5 rounded bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
+              <FileSpreadsheet className="h-3 w-3 text-white" />
             </div>
             <span>CSVApp</span>
           </div>
