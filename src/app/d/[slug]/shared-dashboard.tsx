@@ -2,7 +2,8 @@
 
 import { DashboardView } from "@/components/dashboard-view";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { FileSpreadsheet, Eye, Clock, ArrowLeft } from "lucide-react";
+import { FileSpreadsheet, Eye, Clock, ArrowLeft, Code, Copy, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -16,6 +17,10 @@ interface SharedDashboardProps {
 
 export function SharedDashboard({ config, data, title, views, createdAt }: SharedDashboardProps) {
   const timeAgo = getTimeAgo(new Date(createdAt));
+  const [showEmbed, setShowEmbed] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
+  const slug = typeof window !== "undefined" ? window.location.pathname.split("/").pop() : "";
+  const embedCode = `<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/embed/${slug}" width="100%" height="600" frameborder="0" style="border-radius: 12px; border: 1px solid #e5e7eb;"></iframe>`;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -38,6 +43,15 @@ export function SharedDashboard({ config, data, title, views, createdAt }: Share
                 {timeAgo}
               </span>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={() => setShowEmbed(!showEmbed)}
+            >
+              <Code className="h-3.5 w-3.5" />
+              Embed
+            </Button>
             <ThemeToggle />
             <Link href="/">
               <Button
@@ -50,6 +64,31 @@ export function SharedDashboard({ config, data, title, views, createdAt }: Share
           </div>
         </div>
       </header>
+      {showEmbed && (
+        <div className="border-b border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+          <div className="container mx-auto max-w-6xl">
+            <div className="flex items-center gap-2 mb-2">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Embed this dashboard</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(embedCode);
+                  setEmbedCopied(true);
+                  setTimeout(() => setEmbedCopied(false), 2000);
+                }}
+              >
+                {embedCopied ? <CheckCircle2 className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                {embedCopied ? "Copied!" : "Copy"}
+              </Button>
+            </div>
+            <pre className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-lg p-3 overflow-x-auto text-gray-600 dark:text-gray-400">
+              {embedCode}
+            </pre>
+          </div>
+        </div>
+      )}
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <DashboardView config={config} data={data} />
       </main>
