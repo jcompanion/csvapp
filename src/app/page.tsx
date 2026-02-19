@@ -70,14 +70,21 @@ export default function Home() {
     try {
       const res = await fetch(`/samples/${file}`);
       const text = await res.text();
+      // Truncate to headers + first 100 rows for AI analysis
+      const lines = text.split("\n");
+      const truncatedCsv = lines.slice(0, 101).join("\n");
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csvString: text }),
+        body: JSON.stringify({ csvString: truncatedCsv, totalRows: lines.length - 1 }),
       });
       if (analyzeRes.ok) {
         const data = await analyzeRes.json();
-        setResult(data);
+        // Use full data for rendering, not truncated
+        setResult({
+          ...data,
+          data: { ...data.data, rows: data.data.rows, totalRows: lines.length - 1 },
+        });
       }
     } finally {
       setLoadingSample(null);

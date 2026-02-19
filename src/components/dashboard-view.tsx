@@ -868,5 +868,3 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     </div>
   );
 }
-</content>
-</invoke>
