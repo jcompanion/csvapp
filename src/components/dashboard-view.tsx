@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,6 +42,7 @@ import {
   Lightbulb,
   ArrowUpDown,
   Download,
+  Camera,
   TrendingUp,
   Hash,
   FileSpreadsheet,
@@ -251,6 +252,7 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
 }
 
 export function DashboardView({ config, data }: DashboardViewProps) {
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [sortCol, setSortCol] = useState<string | null>(config.table.sortBy || null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -345,6 +347,20 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     }
   };
 
+  const handleDownloadPng = async () => {
+    if (!dashboardRef.current) return;
+    const { toPng } = await import("html-to-image");
+    try {
+      const dataUrl = await toPng(dashboardRef.current, { quality: 0.95, backgroundColor: "#ffffff" });
+      const link = document.createElement("a");
+      link.download = `${config.title || "dashboard"}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("PNG export failed:", err);
+    }
+  };
+
   const handleExportCsv = () => {
     const headers = config.table.columns;
     const csvRows = [
@@ -363,7 +379,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={dashboardRef}>
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{config.title}</h1>
@@ -428,6 +444,10 @@ export function DashboardView({ config, data }: DashboardViewProps) {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+              <Button variant="outline" size="sm" onClick={handleDownloadPng}>
+                <Camera className="h-4 w-4 mr-1" />
+                PNG
+              </Button>
               <Button variant="outline" size="sm" onClick={handleExportCsv}>
                 <Download className="h-4 w-4 mr-1" />
                 Export
