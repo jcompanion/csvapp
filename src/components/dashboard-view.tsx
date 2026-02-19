@@ -197,7 +197,7 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
               <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
               <Tooltip contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ fill: color, r: 3 }} activeDot={{ r: 5, fill: color }} />
+              <Line type="monotone" dataKey="value" stroke={color} strokeWidth={3} dot={{ fill: color, stroke: color, r: 4 }} activeDot={{ r: 6, fill: color }} />
             </LineChart>
           ) : chart.type === "area" ? (
             <AreaChart data={chartData}>
@@ -205,7 +205,7 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
               <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
               <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.1} strokeWidth={2} />
+              <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.15} strokeWidth={3} />
             </AreaChart>
           ) : (
             <PieChart>
