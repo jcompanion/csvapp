@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CsvUpload } from "@/components/csv-upload";
 import { DashboardView } from "@/components/dashboard-view";
 import {
@@ -32,6 +32,16 @@ export default function Home() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Auto-load template from URL param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const template = params.get("template");
+    if (template && !result) {
+      loadSample(template);
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
 
   const handleShare = async () => {
     if (!result) return;
@@ -177,8 +187,8 @@ export default function Home() {
             <span className="font-bold text-lg text-gray-900 dark:text-white">CSVApp</span>
           </div>
           <div className="flex items-center gap-4">
+            <a href="/templates" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Templates</a>
             <a href="/pricing" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
-            <a href="/my" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">My Dashboards</a>
             <AuthButton />
             <ThemeToggle />
           </div>
@@ -478,8 +488,9 @@ export default function Home() {
               <span>CSVApp</span>
             </div>
             <div className="flex items-center gap-6">
+              <a href="/templates" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Templates</a>
               <a href="/pricing" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Pricing</a>
-              <a href="mailto:hello@csvapp.com" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Contact</a>
+              <a href="/my" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">My Dashboards</a>
             </div>
             <p>Built with ☕ and AI</p>
           </div>
