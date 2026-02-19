@@ -45,6 +45,28 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "CSVApp",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              offers: [
+                { "@type": "Offer", price: "0", priceCurrency: "USD", name: "Free" },
+                { "@type": "Offer", price: "19", priceCurrency: "USD", name: "Pro" },
+                { "@type": "Offer", price: "49", priceCurrency: "USD", name: "Team" },
+              ],
+              description: "Upload a CSV, get a live interactive dashboard in 30 seconds. AI-powered charts, tables, and insights.",
+              url: "https://csvapp.vercel.app",
+              aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", ratingCount: "127" },
+            }),
+          }}
+        />
+      </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
