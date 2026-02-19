@@ -375,7 +375,7 @@ function gId(index: number) {
 
 // ─── Chart Card ──────────────────────────────────────────────────────────────
 function ChartCard({
-  chart,
+  chart: rawChart,
   data,
   index,
 }: {
@@ -383,6 +383,8 @@ function ChartCard({
   data: Record<string, string>[];
   index: number;
 }) {
+  // Map "line" → "area" (Tailwind v4 CSS resets break SVG stroke-only path rendering)
+  const chart = rawChart.type === "line" ? { ...rawChart, type: "area" as const } : rawChart;
   const color = CHART_COLORS[index % CHART_COLORS.length];
   const gradientId = gId(index);
 

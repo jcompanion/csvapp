@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export interface ChartConfig {
-  type: "bar" | "line" | "pie" | "area" | "horizontalBar";
+  type: "bar" | "pie" | "area" | "horizontalBar";
   title: string;
   xAxis: string;
   yAxis: string;
@@ -44,7 +44,7 @@ const responseSchema = {
       items: {
         type: "object" as const,
         properties: {
-          type: { type: "string" as const, enum: ["bar", "line", "pie", "area", "horizontalBar"] },
+          type: { type: "string" as const, enum: ["bar", "pie", "area", "horizontalBar"] },
           title: { type: "string" as const },
           xAxis: { type: "string" as const },
           yAxis: { type: "string" as const },
@@ -108,7 +108,7 @@ Total rows: ${totalRows}
 Rules:
 - If hierarchical (has "reports_to", "parent", "manager", or similar) → set suggestedView to "orgChart" and fill orgChart config
 - If has a status/stage column → set suggestedView to "kanban" or "dashboard" with actionable table
-- If has date + numeric columns → include time series chart (line or area)
+- If has date + numeric columns → include time series chart (use "area" type, not "line")
 - If categorical + numeric → include bar or pie chart. Use horizontalBar for ranked lists (e.g. "top products by revenue", "deals by rep")
 - Generate 2-3 plain-English insights about what you see in the data
 - Pick an accent color that fits the data theme (e.g., green for finance, blue for tech)
