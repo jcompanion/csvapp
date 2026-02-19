@@ -145,8 +145,10 @@ function OrgNode({ data }: NodeProps) {
   return (
     <div
       className="cursor-pointer select-none"
-      onClick={() => setFlipped(!flipped)}
-      style={{ perspective: "1000px" }}
+      onClick={(e) => { e.stopPropagation(); setFlipped(!flipped); }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      style={{ perspective: "1000px", pointerEvents: "all" }}
     >
       <Handle type="target" position={Position.Top} className="!bg-gray-300 !border-gray-400 !w-2 !h-2" />
 
