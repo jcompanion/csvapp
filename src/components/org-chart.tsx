@@ -335,7 +335,7 @@ export function OrgChart({ data, headers }: OrgChartProps) {
   const [edges] = useEdgesState(initialEdges);
 
   return (
-    <div className="w-full h-[600px] rounded-xl border border-gray-200 bg-gray-50/50 overflow-hidden">
+    <div className="w-full h-[600px] rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}

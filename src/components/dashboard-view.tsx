@@ -86,18 +86,18 @@ function StatusBadge({
     "proposal sent": "bg-cyan-100 text-cyan-700 border-cyan-200",
     discovery: "bg-purple-100 text-purple-700 border-purple-200",
     "in review": "bg-orange-100 text-orange-700 border-orange-200",
-    todo: "bg-gray-100 text-gray-600 border-gray-200",
-    backlog: "bg-gray-50 text-gray-500 border-gray-200",
+    todo: "bg-gray-100 text-gray-600 border-gray-200 dark:border-white/10",
+    backlog: "bg-gray-50 text-gray-500 border-gray-200 dark:border-white/10",
     critical: "bg-red-100 text-red-700 border-red-200",
     cancelled: "bg-red-100 text-red-700 border-red-200",
     failed: "bg-red-100 text-red-700 border-red-200",
     "closed lost": "bg-red-100 text-red-700 border-red-200",
-    closed: "bg-gray-100 text-gray-600 border-gray-200",
+    closed: "bg-gray-100 text-gray-600 border-gray-200 dark:border-white/10",
   };
 
   const colorClass =
     colorMap[value.toLowerCase()] ||
-    "bg-gray-100 text-gray-600 border-gray-200";
+    "bg-gray-100 text-gray-600 border-gray-200 dark:border-white/10";
 
   return (
     <DropdownMenu>
@@ -127,7 +127,7 @@ function StatusBadge({
 function StatCard({ label, value, change }: { label: string; value: string; change?: string }) {
   const isPositive = change && !change.startsWith("-");
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-4">
       <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
       <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
       {change && (
@@ -171,9 +171,9 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
   const tooltipStyle = { backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", color: "#111", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)" };
 
   return (
-    <Card className="border-gray-200 shadow-sm">
+    <Card className="border-gray-200 dark:border-white/10 shadow-sm">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-gray-500">
+        <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400 dark:text-gray-500">
           {chart.title}
         </CardTitle>
       </CardHeader>
@@ -181,9 +181,9 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
         <ResponsiveContainer width="100%" height={250}>
           {chart.type === "bar" ? (
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
-              <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
+              <YAxis tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
               <Tooltip contentStyle={tooltipStyle} />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                 {chartData.map((_, i) => (
@@ -193,17 +193,17 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
             </BarChart>
           ) : chart.type === "line" ? (
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
-              <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
+              <YAxis tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
               <Tooltip contentStyle={tooltipStyle} />
               <Line type="monotone" dataKey="value" stroke={color} strokeWidth={3} dot={{ fill: color, stroke: color, r: 4 }} activeDot={{ r: 6, fill: color }} />
             </LineChart>
           ) : chart.type === "area" ? (
             <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
-              <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.1} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
+              <YAxis tick={{ fontSize: 12, fill: "currentColor", fillOpacity: 0.4 }} stroke="currentColor" strokeOpacity={0.15} />
               <Tooltip contentStyle={tooltipStyle} />
               <Area type="monotone" dataKey="value" stroke={color} fill={color} fillOpacity={0.15} strokeWidth={3} />
             </AreaChart>
@@ -340,7 +340,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{config.title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{config.title}</h1>
         <p className="text-gray-500 mt-1">{config.description}</p>
       </div>
 
@@ -359,7 +359,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
               <Lightbulb className="h-5 w-5 text-orange-500 mt-0.5 shrink-0" />
               <div className="space-y-1">
                 {config.insights.map((insight, i) => (
-                  <p key={i} className="text-sm text-gray-700">{insight}</p>
+                  <p key={i} className="text-sm text-gray-700 dark:text-gray-200">{insight}</p>
                 ))}
               </div>
             </div>
@@ -370,7 +370,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
       {/* Org Chart */}
       {isOrgChart && (
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-900">Organization</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Organization</h2>
           <OrgChart data={data.rows} headers={data.headers} />
         </div>
       )}
@@ -385,13 +385,13 @@ export function DashboardView({ config, data }: DashboardViewProps) {
       )}
 
       {/* Data Table */}
-      <Card className="border-gray-200 shadow-sm">
+      <Card className="border-gray-200 dark:border-white/10 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-gray-900">Data</CardTitle>
+            <CardTitle className="text-lg text-gray-900 dark:text-white">Data</CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <Input
                   placeholder="Search..."
                   className="pl-9 w-[200px]"
@@ -407,14 +407,14 @@ export function DashboardView({ config, data }: DashboardViewProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-gray-200 overflow-auto max-h-[500px]">
+          <div className="rounded-md border border-gray-200 dark:border-white/10 overflow-auto max-h-[500px]">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50">
+                <TableRow className="bg-gray-50 dark:bg-gray-800/50">
                   {config.table.columns.map((col) => (
                     <TableHead
                       key={col}
-                      className="cursor-pointer hover:bg-gray-100 whitespace-nowrap text-gray-600"
+                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 whitespace-nowrap text-gray-600 dark:text-gray-300"
                       onClick={() => handleSort(col)}
                     >
                       <div className="flex items-center gap-1">
@@ -429,7 +429,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
               </TableHeader>
               <TableBody>
                 {filteredRows.slice(0, 100).map((row, rowIdx) => (
-                  <TableRow key={rowIdx} className="hover:bg-gray-50">
+                  <TableRow key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-white/5 dark:bg-gray-800/50">
                     {config.table.columns.map((col) => (
                       <TableCell key={col} className="whitespace-nowrap">
                         {col === config.table.statusField &&
@@ -440,7 +440,7 @@ export function DashboardView({ config, data }: DashboardViewProps) {
                             onChange={(v) => handleStatusChange(rowIdx, col, v)}
                           />
                         ) : (
-                          <span className="text-sm text-gray-700">{row[col]}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-200">{row[col]}</span>
                         )}
                       </TableCell>
                     ))}

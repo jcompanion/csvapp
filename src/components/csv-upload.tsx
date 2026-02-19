@@ -69,10 +69,10 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
     <div
       className={`relative rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 ${
         isDragging
-          ? "border-orange-400 bg-orange-50"
+          ? "border-orange-400 dark:border-orange-500/50 bg-orange-50 dark:bg-orange-950/30"
           : isLoading
-          ? "border-gray-200 bg-gray-50"
-          : "border-gray-200 bg-gray-50/50 hover:border-orange-300 hover:bg-orange-50/50"
+          ? "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900"
+          : "border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900/50 hover:border-orange-300 hover:bg-orange-50/50"
       }`}
       onDragOver={(e) => {
         e.preventDefault();
@@ -83,31 +83,31 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
     >
       {isLoading ? (
         <div className="flex flex-col items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-orange-100 border border-orange-200 flex items-center justify-center">
+          <div className="h-14 w-14 rounded-2xl bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-500/30 flex items-center justify-center">
             <Sparkles className="h-6 w-6 text-orange-500 animate-pulse" />
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-900">Analyzing {fileName}...</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">Analyzing {fileName}...</p>
             <p className="text-sm text-gray-500 mt-1">
               AI is reading your data and building the perfect dashboard
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
             <Loader2 className="h-3 w-3 animate-spin" />
             Usually takes 2-5 seconds
           </div>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
+          <div className="h-14 w-14 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 shadow-sm flex items-center justify-center">
             {fileName ? (
               <FileSpreadsheet className="h-6 w-6 text-orange-500" />
             ) : (
-              <Upload className="h-6 w-6 text-gray-400" />
+              <Upload className="h-6 w-6 text-gray-400 dark:text-gray-500" />
             )}
           </div>
           <div>
-            <p className="text-lg font-semibold text-gray-900">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
               {fileName || "Drop your CSV here"}
             </p>
             <p className="text-sm text-gray-500 mt-1">
@@ -129,7 +129,7 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
             </label>
           </Button>
           {error && (
-            <p className="text-sm text-red-500">{error}</p>
+            <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
           )}
         </div>
       )}

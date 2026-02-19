@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
   const [result, setResult] = useState<{ config: any; data: any } | null>(null);
@@ -47,8 +48,8 @@ export default function Home() {
 
   if (result) {
     return (
-      <div className="min-h-screen bg-white">
-        <header className="border-b border-gray-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
+      <div className="min-h-screen bg-white dark:bg-gray-950">
+        <header className="border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl">
             <button
               onClick={() => setResult(null)}
@@ -57,16 +58,19 @@ export default function Home() {
               <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
                 <FileSpreadsheet className="h-4 w-4 text-white" />
               </div>
-              <span className="text-lg text-gray-900">CSVApp</span>
+              <span className="text-lg text-gray-900 dark:text-white">CSVApp</span>
             </button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setResult(null)}
-              className="text-xs"
-            >
-              Upload new CSV
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setResult(null)}
+                className="text-xs"
+              >
+                Upload new CSV
+              </Button>
+            </div>
           </div>
         </header>
         <main className="container mx-auto px-4 py-8 max-w-6xl">
@@ -106,19 +110,20 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       {/* Nav */}
-      <nav className="border-b border-gray-100 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="border-b border-gray-100 dark:border-white/5 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-5xl">
           <div className="flex items-center gap-2">
             <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
               <FileSpreadsheet className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-lg text-gray-900">CSVApp</span>
+            <span className="font-bold text-lg text-gray-900 dark:text-white">CSVApp</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 hidden sm:block">Pricing</span>
-            <span className="text-sm text-gray-500 hidden sm:block">Docs</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Pricing</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Docs</span>
+            <ThemeToggle />
             <Button
               size="sm"
               className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 transition-opacity rounded-full px-4"
@@ -132,13 +137,13 @@ export default function Home() {
       {/* Hero */}
       <section className="pt-16 pb-12 px-4">
         <div className="container mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-50 dark:bg-orange-950/30 text-orange-600 text-sm font-medium mb-6">
             <Sparkles className="h-3.5 w-3.5" />
             AI-powered dashboards from any CSV
           </div>
 
           <h1
-            className="text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 text-gray-900"
+            className="text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 text-gray-900 dark:text-white"
             style={{ letterSpacing: "-0.5px" }}
           >
             Your spreadsheet,
@@ -167,8 +172,8 @@ export default function Home() {
                 <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <span className="text-sm text-gray-500">
-              Loved by <strong className="text-gray-700">1,000+</strong> users
+            <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+              Loved by <strong className="text-gray-700 dark:text-gray-200">1,000+</strong> users
             </span>
           </div>
 
@@ -188,7 +193,7 @@ export default function Home() {
                   key={sample.file}
                   variant="ghost"
                   size="sm"
-                  className="gap-1.5 text-xs text-gray-500 hover:text-gray-900 hover:bg-gray-50 border border-transparent hover:border-gray-200 rounded-full"
+                  className="gap-1.5 text-xs text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/20 dark:border-white/10 rounded-full"
                   disabled={loadingSample !== null}
                   onClick={() => loadSample(sample.file)}
                 >
@@ -206,9 +211,9 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section className="py-16 px-4 bg-gray-50/50">
+      <section className="py-16 px-4 bg-gray-50/50 dark:bg-white/[0.02]">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center mb-3 tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold text-center mb-3 tracking-tight text-gray-900 dark:text-white">
             Beautiful dashboards in 3 steps
           </h2>
           <p className="text-center text-gray-500 mb-12">
@@ -237,14 +242,14 @@ export default function Home() {
             ].map((item) => (
               <div key={item.step} className="text-center">
                 <div className="relative inline-flex items-center justify-center mb-5">
-                  <div className="h-14 w-14 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-2xl bg-white border border-gray-200 dark:border-white/10 shadow-sm flex items-center justify-center">
                     <item.icon className="h-6 w-6 text-orange-500" />
                   </div>
-                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center shadow-sm">
+                  <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-orange-50 dark:bg-orange-950/300 text-white text-xs font-bold flex items-center justify-center shadow-sm">
                     {item.step}
                   </span>
                 </div>
-                <h3 className="font-semibold text-lg mb-1.5 text-gray-900">{item.title}</h3>
+                <h3 className="font-semibold text-lg mb-1.5 text-gray-900 dark:text-white">{item.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   {item.desc}
                 </p>
@@ -257,7 +262,7 @@ export default function Home() {
       {/* Comparison */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-2xl">
-          <h2 className="text-3xl font-bold text-center mb-3 tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold text-center mb-3 tracking-tight text-gray-900 dark:text-white">
             Stop fighting your spreadsheet
           </h2>
           <p className="text-center text-gray-500 mb-10">
@@ -265,9 +270,9 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6">
+            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] p-6">
               <p className="font-semibold text-red-500 mb-4">Without CSVApp</p>
-              <ul className="space-y-3 text-sm text-gray-600">
+              <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
                 {[
                   "Export CSV, open Excel, fight with charts",
                   "Manually format for stakeholders",
@@ -283,9 +288,9 @@ export default function Home() {
               </ul>
             </div>
 
-            <div className="rounded-2xl border border-orange-200 bg-orange-50/30 p-6">
+            <div className="rounded-2xl border border-orange-200 bg-orange-50 dark:bg-orange-950/30/30 p-6">
               <p className="font-semibold text-orange-600 mb-4">With CSVApp</p>
-              <ul className="space-y-3 text-sm text-gray-700">
+              <ul className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
                 {[
                   "Upload CSV, dashboard appears instantly",
                   "AI picks the perfect charts for your data",
@@ -305,9 +310,9 @@ export default function Home() {
       </section>
 
       {/* Use cases */}
-      <section className="py-16 px-4 bg-gray-50/50">
+      <section className="py-16 px-4 bg-gray-50/50 dark:bg-white/[0.02]">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight text-gray-900 dark:text-white">
             Works with any data
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -323,10 +328,10 @@ export default function Home() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-200 bg-white p-5 hover:border-orange-200 hover:shadow-sm transition-all"
+                className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-200 dark:border-white/10 bg-white p-5 hover:border-orange-200 dark:hover:border-orange-500/30 hover:shadow-sm transition-all"
               >
-                <item.icon className="h-5 w-5 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                <item.icon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{item.label}</span>
               </div>
             ))}
           </div>
@@ -336,12 +341,12 @@ export default function Home() {
       {/* Testimonials */}
       <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold text-center mb-10 tracking-tight text-gray-900 dark:text-white">
             Loved by data people
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t) => (
-              <div key={t.name} className="rounded-2xl border border-gray-200 bg-white p-6">
+              <div key={t.name} className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white p-6">
                 <div className="flex gap-0.5 mb-3">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -355,8 +360,8 @@ export default function Home() {
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-500">{t.role}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{t.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -366,9 +371,9 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-4 bg-gray-50/50">
+      <section className="py-20 px-4 bg-gray-50/50 dark:bg-white/[0.02]">
         <div className="container mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold mb-4 tracking-tight text-gray-900">
+          <h2 className="text-3xl font-bold mb-4 tracking-tight text-gray-900 dark:text-white">
             Ready to make your data beautiful?
           </h2>
           <p className="text-gray-500 mb-8">
@@ -376,7 +381,7 @@ export default function Home() {
           </p>
           <Button
             size="lg"
-            className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold hover:opacity-90 transition-opacity gap-2 px-8 rounded-full shadow-lg shadow-orange-500/20"
+            className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold hover:opacity-90 transition-opacity gap-2 px-8 rounded-full shadow-lg shadow-orange-500/20 dark:shadow-orange-500/10"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
             Upload your CSV
@@ -390,16 +395,16 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <span className="text-sm text-gray-500">
-              Loved by <strong className="text-gray-700">1,000+</strong> users
+            <span className="text-sm text-gray-500 dark:text-gray-400 dark:text-gray-500">
+              Loved by <strong className="text-gray-700 dark:text-gray-200">1,000+</strong> users
             </span>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-8 px-4">
-        <div className="container mx-auto max-w-5xl flex items-center justify-between text-sm text-gray-400">
+      <footer className="border-t border-gray-100 dark:border-white/5 py-8 px-4">
+        <div className="container mx-auto max-w-5xl flex items-center justify-between text-sm text-gray-400 dark:text-gray-500">
           <div className="flex items-center gap-2">
             <div className="h-5 w-5 rounded bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
               <FileSpreadsheet className="h-3 w-3 text-white" />
