@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Upload, FileSpreadsheet, Loader2, Sparkles, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,6 +120,26 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
     },
     [processFile]
   );
+
+  // Global paste handler — paste CSV data directly
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      if (isLoading) return;
+      const text = e.clipboardData?.getData("text/plain");
+      if (text && text.includes(",") && text.includes("\n") && text.split("\n").length > 2) {
+        e.preventDefault();
+        setFileName("Pasted data");
+        setIsLoading(true);
+        setError(null);
+        analyzeCSV(text).catch((err) => {
+          setError(err instanceof Error ? err.message : "Analysis failed");
+          setIsLoading(false);
+        });
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [isLoading, analyzeCSV]);
 
   return (
     <div>
@@ -244,7 +264,7 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
                   {fileName || "Drop your CSV here"}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  or click to browse — we&apos;ll handle the rest
+                  or click to browse — you can also <kbd className="px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-[10px] font-mono">Ctrl+V</kbd> paste
                 </p>
               </div>
               <Button
