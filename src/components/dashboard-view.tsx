@@ -44,6 +44,7 @@ import {
   Download,
 } from "lucide-react";
 import type { DashboardConfig, ChartConfig } from "@/lib/gemini";
+import { OrgChart } from "@/components/org-chart";
 
 interface DashboardViewProps {
   config: DashboardConfig;
@@ -214,6 +215,12 @@ export function DashboardView({ config, data }: DashboardViewProps) {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [overrides, setOverrides] = useState<Record<string, Record<string, string>>>({});
 
+  // Detect if this is org chart data (has reports_to / manager column)
+  const isOrgChart = useMemo(() => {
+    const lower = data.headers.map((h) => h.toLowerCase());
+    return lower.some((h) => h.includes("reports_to") || h.includes("reportsto") || h.includes("manager") || h.includes("supervisor"));
+  }, [data.headers]);
+
   const filteredRows = useMemo(() => {
     let rows = data.rows.map((row, i) => ({
       ...row,
@@ -304,6 +311,14 @@ export function DashboardView({ config, data }: DashboardViewProps) {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Org Chart */}
+      {isOrgChart && (
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Organization</h2>
+          <OrgChart data={data.rows} headers={data.headers} />
+        </div>
       )}
 
       {/* Charts */}
