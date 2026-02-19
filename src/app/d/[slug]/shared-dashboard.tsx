@@ -88,8 +88,9 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
             </div>
             <span className="text-lg text-gray-900 dark:text-white">CSVApp</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {/* Views + time — hidden on mobile */}
+            <div className="hidden sm:flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <Eye className="h-3.5 w-3.5" />
                 {views} views
@@ -106,7 +107,7 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
               onClick={() => setShowEmbed(!showEmbed)}
             >
               <Code className="h-3.5 w-3.5" />
-              Embed
+              <span className="hidden sm:inline">Embed</span>
             </Button>
             {isOwner && (
               <>
@@ -117,7 +118,7 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
                   onClick={() => setIsEditMode(!isEditMode)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
-                  {isEditMode ? "Done" : "Edit"}
+                  <span className="hidden sm:inline">{isEditMode ? "Done" : "Edit"}</span>
                 </Button>
                 {isDirty && (
                   <Button
@@ -133,7 +134,7 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
                     ) : (
                       <Save className="h-3.5 w-3.5" />
                     )}
-                    {saving ? "Saving..." : saved ? "Saved!" : "Save"}
+                    <span className="hidden sm:inline">{saving ? "Saving..." : saved ? "Saved!" : "Save"}</span>
                   </Button>
                 )}
               </>
@@ -142,7 +143,7 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
             <Link href="/">
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 transition-opacity rounded-full px-4"
+                className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 transition-opacity rounded-full px-3 sm:px-4 text-xs"
               >
                 Create yours
               </Button>
@@ -169,7 +170,7 @@ export function SharedDashboard({ config: initialConfig, data, title, views, cre
                 {embedCopied ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <pre className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-lg p-3 overflow-x-auto text-gray-600 dark:text-gray-400">
+            <pre className="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-lg p-3 overflow-x-auto text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-all sm:whitespace-pre sm:break-normal">
               {embedCode}
             </pre>
           </div>

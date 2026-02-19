@@ -124,9 +124,17 @@
     border: none !important;
     outline: none !important;
   }
+  html {
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
     transition: background-color 0.2s ease, color 0.2s ease;
+    /* iOS safe area support */
+    padding-bottom: env(safe-area-inset-bottom);
+    /* Prevent horizontal overflow */
+    overflow-x: hidden;
   }
 }
 

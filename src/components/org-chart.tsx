@@ -400,7 +400,7 @@ export function OrgChart({
   }, [autoNodes, setNodes, onPositionChange]);
 
   return (
-    <div className="relative w-full h-[600px] rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden">
+    <div className="relative w-full h-[380px] sm:h-[600px] rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden">
       {/* Edit mode hint */}
       {isEditMode && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-orange-50 dark:bg-orange-950/60 border border-orange-200 dark:border-orange-700/50 rounded-full px-3 py-1 shadow-sm pointer-events-none">

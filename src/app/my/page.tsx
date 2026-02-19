@@ -227,26 +227,26 @@ export default function MyDashboards() {
         {/* Header row */}
         <div className="flex items-center justify-between mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Dashboards</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Dashboards</h1>
             {user && !loading && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {dashboards.length} dashboard{dashboards.length !== 1 ? "s" : ""}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* View toggle */}
             {user && dashboards.length > 0 && (
               <div className="flex border border-gray-200 dark:border-white/10 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-1.5 transition-colors ${viewMode === "grid" ? "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                  className={`p-2 transition-colors ${viewMode === "grid" ? "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-1.5 transition-colors ${viewMode === "list" ? "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
+                  className={`p-2 transition-colors ${viewMode === "list" ? "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"}`}
                 >
                   <List className="h-4 w-4" />
                 </button>
@@ -255,7 +255,7 @@ export default function MyDashboards() {
             <Link href="/">
               <Button className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 rounded-full gap-2">
                 <Plus className="h-4 w-4" />
-                New Dashboard
+                <span className="hidden sm:inline">New Dashboard</span>
               </Button>
             </Link>
           </div>

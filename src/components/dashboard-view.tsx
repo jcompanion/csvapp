@@ -284,7 +284,7 @@ function StatCard({ label, value, rawNumber, change, trend, icon: Icon, sparklin
 
   return (
     <div
-      className={`chart-animate rounded-xl border border-gray-200 dark:border-white/10 bg-gradient-to-br ${moodBg} p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden`}
+      className={`chart-animate rounded-xl border border-gray-200 dark:border-white/10 bg-gradient-to-br ${moodBg} p-3 sm:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden`}
       style={{ animationDelay: `${animDelay}ms` }}
     >
       <div className="flex items-center justify-between mb-2">
@@ -295,7 +295,7 @@ function StatCard({ label, value, rawNumber, change, trend, icon: Icon, sparklin
           </div>
         )}
       </div>
-      <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight leading-none tabular-nums">{displayValue}</p>
+      <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight leading-none tabular-nums">{displayValue}</p>
       {change && (
         <p className={`text-xs font-semibold mt-2 flex items-center gap-1 ${isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
           {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -1177,10 +1177,10 @@ export function DashboardView({ config, data, isEditMode = false, onConfigChange
                 )}
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                  <Input placeholder="Search..." className="pl-9 w-[180px] text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <Input placeholder="Search..." className="pl-9 w-[140px] sm:w-[180px] text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
-                <Button variant="outline" size="sm" onClick={handleDownloadPng}><Camera className="h-4 w-4 mr-1" />PNG</Button>
-                <Button variant="outline" size="sm" onClick={handleExportCsv}><Download className="h-4 w-4 mr-1" />Export</Button>
+                <Button variant="outline" size="sm" onClick={handleDownloadPng} className="gap-1"><Camera className="h-4 w-4" /><span className="hidden sm:inline">PNG</span></Button>
+                <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1"><Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span></Button>
               </div>
             )}
           </div>

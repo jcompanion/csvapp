@@ -24,6 +24,8 @@ import {
   PenLine,
   Eye,
   LogIn,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +47,7 @@ export default function Home() {
   const [savedSlug, setSavedSlug] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [autoSaved, setAutoSaved] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isDirtyRef = useRef(false);
   // Stores latest inline-edited rows separately so result.data stays as original
   const editedDataRef = useRef<Record<string, string>[] | null>(null);
@@ -232,7 +235,7 @@ export default function Home() {
               <span className="text-lg text-gray-900 dark:text-white">CSVApp</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <AuthButton />
               <ThemeToggle />
 
@@ -244,7 +247,7 @@ export default function Home() {
                 className={`text-xs gap-1.5 ${isEditMode ? "bg-orange-500 hover:bg-orange-600 text-white border-orange-500" : ""}`}
               >
                 {isEditMode ? <Eye className="h-3.5 w-3.5" /> : <PenLine className="h-3.5 w-3.5" />}
-                {isEditMode ? "Done" : "Edit"}
+                <span className="hidden sm:inline">{isEditMode ? "Done" : "Edit"}</span>
               </Button>
 
               {/* Save button */}
@@ -262,7 +265,7 @@ export default function Home() {
                 ) : (
                   <Save className="h-3.5 w-3.5" />
                 )}
-                {saving ? "Saving..." : copied && !isDirty ? "Saved!" : "Save"}
+                <span className="hidden sm:inline">{saving ? "Saving..." : copied && !isDirty ? "Saved!" : "Save"}</span>
                 {isDirty && (
                   <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-orange-500" />
                 )}
@@ -277,9 +280,15 @@ export default function Home() {
                 className="text-xs gap-1.5"
               >
                 {copied && !isDirty ? (
-                  <><CheckCircle2 className="h-3.5 w-3.5 text-green-500" />Copied!</>
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                    <span className="hidden sm:inline">Copied!</span>
+                  </>
                 ) : (
-                  <><LinkIcon className="h-3.5 w-3.5" />Share</>
+                  <>
+                    <LinkIcon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Share</span>
+                  </>
                 )}
               </Button>
 
@@ -291,9 +300,10 @@ export default function Home() {
                   setResult(null); setLocalConfig(null); setIsDirty(false);
                   setSavedSlug(null); setShareUrl(null); setIsEditMode(false);
                 }}
-                className="text-xs"
+                className="text-xs gap-1.5"
               >
-                Upload new CSV
+                <Upload className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Upload new CSV</span>
               </Button>
             </div>
           </div>
@@ -386,14 +396,35 @@ export default function Home() {
             </div>
             <span className="font-bold text-lg text-gray-900 dark:text-white">CSVApp</span>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="/templates" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Templates</a>
-            <a href="/pricing" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
-            <a href="/my" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">My Dashboards</a>
+          {/* Desktop nav links */}
+          <div className="hidden sm:flex items-center gap-4">
+            <a href="/templates" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Templates</a>
+            <a href="/pricing" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
+            <a href="/my" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">My Dashboards</a>
             <AuthButton />
             <ThemeToggle />
           </div>
+          {/* Mobile: auth + theme + hamburger */}
+          <div className="flex sm:hidden items-center gap-2">
+            <AuthButton />
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileMenuOpen((o) => !o)}
+              className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-gray-100 dark:border-white/5 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl px-4 py-2">
+            <a href="/templates" className="flex items-center px-3 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setMobileMenuOpen(false)}>Templates</a>
+            <a href="/pricing" className="flex items-center px-3 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+            <a href="/my" className="flex items-center px-3 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors" onClick={() => setMobileMenuOpen(false)}>My Dashboards</a>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
@@ -404,7 +435,7 @@ export default function Home() {
             AI-powered dashboards from any CSV
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 text-gray-900 dark:text-white" style={{ letterSpacing: "-0.5px" }}>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.05] mb-5 text-gray-900 dark:text-white" style={{ letterSpacing: "-0.5px" }}>
             Your spreadsheet,<br />made beautiful.
           </h1>
 

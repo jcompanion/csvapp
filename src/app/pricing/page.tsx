@@ -194,7 +194,7 @@ export default function PricingPage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 dark:border-white/5 py-8 px-4">
-        <div className="container mx-auto max-w-5xl flex items-center justify-between text-sm text-gray-400">
+        <div className="container mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <div className="h-5 w-5 rounded bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
               <FileSpreadsheet className="h-3 w-3 text-white" />
