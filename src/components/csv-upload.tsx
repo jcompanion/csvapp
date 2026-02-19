@@ -20,12 +20,28 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
 
   const analyzeCSV = useCallback(
     async (csvString: string) => {
-      setLoadingMessage("AI is building your dashboard...");
+      const messages = [
+        "AI is reading your data...",
+        "Detecting column types...",
+        "Choosing the best charts...",
+        "Calculating KPIs...",
+        "Building your dashboard...",
+        "Almost there...",
+      ];
+      let msgIdx = 0;
+      setLoadingMessage(messages[0]);
+      const interval = setInterval(() => {
+        msgIdx = Math.min(msgIdx + 1, messages.length - 1);
+        setLoadingMessage(messages[msgIdx]);
+      }, 1500);
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csvString }),
       });
+
+      clearInterval(interval);
 
       if (!response.ok) {
         const err = await response.json();
