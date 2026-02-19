@@ -122,5 +122,29 @@
   }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
+}
+
+/* Chart entrance animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-animate {
+  opacity: 0;
+  animation: fadeInUp 0.45s ease-out forwards;
+}
+
+/* KPI count-up shimmer */
+@keyframes kpiShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }

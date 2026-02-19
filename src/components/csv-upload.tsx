@@ -44,8 +44,15 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
       clearInterval(interval);
 
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || "Analysis failed");
+        let errMsg = "Analysis failed";
+        try {
+          const err = await response.json();
+          errMsg = err.error || errMsg;
+        } catch {
+          const text = await response.text();
+          errMsg = text.slice(0, 200) || `Server error (${response.status})`;
+        }
+        throw new Error(errMsg);
       }
 
       const result = await response.json();
@@ -86,7 +93,8 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
       });
 
       if (!res.ok) {
-        const err = await res.json();
+        let err: any = {};
+        try { err = await res.json(); } catch { err = { error: `Server error (${res.status})` }; }
         throw new Error(err.error || "Import failed");
       }
 
