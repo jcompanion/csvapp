@@ -151,6 +151,18 @@ function ChartCard({ chart, data, accentColor, index }: { chart: ChartConfig; da
       return Object.entries(grouped).map(([name, value]) => ({ name, value }));
     }
 
+    // For bar charts, aggregate (sum) by xAxis; for line/area, keep order
+    if (chart.type === "bar") {
+      const grouped: Record<string, number> = {};
+      data.forEach((row) => {
+        const key = row[chart.xAxis] || "Unknown";
+        const val = parseFloat(row[chart.yAxis]) || 0;
+        grouped[key] = (grouped[key] || 0) + val;
+      });
+      return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+    }
+
+    // Line/area: keep row order, deduplicate by xAxis
     const seen = new Set<string>();
     const deduped: Record<string, string>[] = [];
     data.forEach((row) => {
