@@ -1,0 +1,16 @@
+student,grade_level,math,science,english,history,attendance,status
+Alice Johnson,10th,92,88,95,90,97%,On Track
+Ben Williams,10th,78,82,71,85,93%,On Track
+Carla Davis,10th,65,70,68,72,88%,Needs Support
+David Lee,10th,95,97,89,92,99%,Honors
+Emma Martinez,10th,84,79,91,86,95%,On Track
+Frank Chen,10th,58,63,72,67,78%,At Risk
+Grace Kim,10th,91,94,87,93,98%,Honors
+Henry Brown,10th,73,76,80,74,91%,On Track
+Ivy Taylor,10th,88,85,93,89,96%,On Track
+Jake Wilson,10th,62,59,65,70,82%,At Risk
+Kate Anderson,10th,96,92,98,95,100%,Honors
+Leo Thomas,10th,81,77,75,83,90%,On Track
+Maya Robinson,10th,70,73,82,69,85%,Needs Support
+Noah Clark,10th,87,90,84,88,94%,On Track
+Olivia Moore,10th,93,96,90,91,99%,Honors

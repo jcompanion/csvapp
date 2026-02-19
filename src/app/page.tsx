@@ -137,6 +137,9 @@ export default function Home() {
     { name: "Monthly Finances", file: "monthly-finances.csv", icon: DollarSign },
     { name: "Project Tracker", file: "project-tracker.csv", icon: ListChecks },
     { name: "Customer Feedback", file: "customer-feedback.csv", icon: MessageSquare },
+    { name: "Shopify Orders", file: "shopify-orders.csv", icon: FileSpreadsheet },
+    { name: "Marketing Campaigns", file: "marketing-campaigns.csv", icon: Zap },
+    { name: "Student Grades", file: "student-grades.csv", icon: Star },
   ];
 
   const testimonials = [
