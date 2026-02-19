@@ -178,14 +178,8 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <a href="/pricing" className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block hover:text-gray-900 dark:hover:text-white transition-colors">Pricing</a>
-            <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">Docs</span>
+            <AuthButton />
             <ThemeToggle />
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-orange-500 to-rose-500 text-white font-medium hover:opacity-90 transition-opacity rounded-full px-4"
-            >
-              Start free trial
-            </Button>
           </div>
         </div>
       </nav>
