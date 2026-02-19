@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthButton } from "@/components/auth-button";
 
 export default function Home() {
   const [result, setResult] = useState<{ config: any; data: any } | null>(null);
@@ -88,6 +89,7 @@ export default function Home() {
               <span className="text-lg text-gray-900 dark:text-white">CSVApp</span>
             </button>
             <div className="flex items-center gap-2">
+              <AuthButton />
               <ThemeToggle />
               <Button
                 variant="outline"
