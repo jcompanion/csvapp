@@ -264,6 +264,20 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Hero Screenshot */}
+      <section className="pb-8 px-4 -mt-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="rounded-2xl overflow-hidden shadow-2xl shadow-gray-200/60 dark:shadow-black/30 border border-gray-200/60 dark:border-white/10">
+            <img
+              src="/hero-dashboard.jpg"
+              alt="CSVApp Sales Pipeline Dashboard"
+              className="w-full h-auto"
+              loading="eager"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="py-16 px-4 bg-gray-50/50 dark:bg-white/[0.02]">
         <div className="container mx-auto max-w-4xl">
@@ -457,15 +471,21 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 dark:border-white/5 py-8 px-4">
-        <div className="container mx-auto max-w-5xl flex items-center justify-between text-sm text-gray-400 dark:text-gray-500">
-          <div className="flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
-              <FileSpreadsheet className="h-3 w-3 text-white" />
+      <footer className="border-t border-gray-100 dark:border-white/5 py-12 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-gray-400 dark:text-gray-500">
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-5 rounded bg-gradient-to-br from-orange-500 to-rose-500 flex items-center justify-center">
+                <FileSpreadsheet className="h-3 w-3 text-white" />
+              </div>
+              <span>CSVApp</span>
             </div>
-            <span>CSVApp</span>
+            <div className="flex items-center gap-6">
+              <a href="/pricing" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Pricing</a>
+              <a href="mailto:hello@csvapp.com" className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Contact</a>
+            </div>
+            <p>Built with ☕ and AI</p>
           </div>
-          <p>Built with ☕ and AI</p>
         </div>
       </footer>
     </div>
