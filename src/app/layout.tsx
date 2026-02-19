@@ -12,17 +12,29 @@ export const metadata: Metadata = {
   title: "CSVApp — Your Spreadsheet, Made Beautiful",
   description:
     "Upload a CSV, get a live interactive dashboard in 30 seconds. AI-powered charts, tables, org charts, and insights. No setup required.",
+  keywords: [
+    "CSV dashboard", "CSV to chart", "spreadsheet dashboard", "data visualization",
+    "CSV viewer", "Google Sheets dashboard", "shareable dashboard", "AI dashboard",
+    "CSV upload", "interactive charts", "org chart generator", "sales dashboard",
+  ],
   openGraph: {
     title: "CSVApp — Your Spreadsheet, Made Beautiful",
     description:
-      "Upload a CSV, get a live interactive dashboard in 30 seconds.",
+      "Upload a CSV, get a live interactive dashboard in 30 seconds. No setup. No account.",
     type: "website",
+    siteName: "CSVApp",
+    url: "https://csvapp.vercel.app",
   },
   twitter: {
     card: "summary_large_image",
     title: "CSVApp — Your Spreadsheet, Made Beautiful",
     description:
       "Upload a CSV, get a live interactive dashboard in 30 seconds.",
+  },
+  metadataBase: new URL("https://csvapp.vercel.app"),
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
