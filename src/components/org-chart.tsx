@@ -78,16 +78,52 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-// Role icon based on title
-function getRoleIcon(title?: string): string {
-  if (!title) return "●";
+// Role tier determines node shape
+type RoleTier = "executive" | "vp" | "manager" | "senior" | "ic";
+
+function getRoleTier(title?: string): RoleTier {
+  if (!title) return "ic";
   const t = title.toLowerCase();
-  if (t.includes("ceo") || t.includes("cto") || t.includes("cfo") || t.includes("coo") || t.includes("chief")) return "⭐";
-  if (t.includes("vp") || t.includes("vice president") || t.includes("director")) return "★";
-  if (t.includes("manager") || t.includes("lead") || t.includes("head")) return "◆";
-  if (t.includes("senior") || t.includes("sr.") || t.includes("principal")) return "▲";
-  return "●";
+  if (t.includes("ceo") || t.includes("cto") || t.includes("cfo") || t.includes("coo") || t.includes("chief")) return "executive";
+  if (t.includes("vp") || t.includes("vice president") || t.includes("director")) return "vp";
+  if (t.includes("manager") || t.includes("lead") || t.includes("head")) return "manager";
+  if (t.includes("senior") || t.includes("sr.") || t.includes("principal")) return "senior";
+  return "ic";
 }
+
+// Shape styles per tier
+const SHAPE_STYLES: Record<RoleTier, { clipPath: string; width: string; label: string }> = {
+  executive: {
+    // Star/badge shape via border-radius trick — we'll use a wide rounded hexagon
+    clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+    width: "w-[200px]",
+    label: "⭐",
+  },
+  vp: {
+    // Diamond/rhombus with cut corners
+    clipPath: "polygon(50% 0%, 100% 30%, 100% 70%, 50% 100%, 0% 70%, 0% 30%)",
+    width: "w-[200px]",
+    label: "★",
+  },
+  manager: {
+    // Rounded octagon
+    clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
+    width: "w-[200px]",
+    label: "◆",
+  },
+  senior: {
+    // Pill / stadium shape — just use border-radius
+    clipPath: "",
+    width: "w-[200px]",
+    label: "▲",
+  },
+  ic: {
+    // Circle
+    clipPath: "",
+    width: "w-[160px]",
+    label: "●",
+  },
+};
 
 // Custom node component
 function OrgNode({ data }: NodeProps) {
@@ -101,6 +137,10 @@ function OrgNode({ data }: NodeProps) {
   const department = cols.department ? person[cols.department] : undefined;
   const location = cols.location ? person[cols.location] : undefined;
   const bio = cols.bio ? person[cols.bio] : undefined;
+  const tier = getRoleTier(title);
+  const shape = SHAPE_STYLES[tier];
+  const isCircle = tier === "ic";
+  const useClipPath = !!shape.clipPath;
 
   return (
     <div
@@ -119,61 +159,56 @@ function OrgNode({ data }: NodeProps) {
       >
         {/* Front */}
         <div
-          className={`w-[220px] rounded-xl border ${deptColor.border} ${deptColor.bg} p-4 backdrop-blur-sm`}
-          style={{ backfaceVisibility: "hidden" }}
+          className={`${shape.width} ${deptColor.bg} backdrop-blur-sm flex flex-col items-center justify-center text-center ${
+            isCircle ? "aspect-square rounded-full" : useClipPath ? "" : "rounded-2xl"
+          }`}
+          style={{
+            backfaceVisibility: "hidden",
+            ...(useClipPath ? { clipPath: shape.clipPath } : {}),
+            padding: isCircle ? "20px" : useClipPath ? "30px 16px" : "16px",
+            border: useClipPath ? "none" : undefined,
+            boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.1)"}`,
+          }}
         >
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div
-                className={`h-10 w-10 rounded-full ${deptColor.border} border-2 flex items-center justify-center text-sm font-bold ${deptColor.text}`}
-              >
-                {getInitials(name)}
-              </div>
-              <span className="absolute -top-1 -right-1 text-[10px]" title={title}>
-                {getRoleIcon(title)}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-sm text-white truncate">{name}</p>
-              {title && (
-                <p className="text-xs text-white/60 truncate">{title}</p>
-              )}
-            </div>
+          <div
+            className={`h-10 w-10 rounded-full ${deptColor.border} border-2 flex items-center justify-center text-sm font-bold ${deptColor.text} mb-1`}
+          >
+            {getInitials(name)}
           </div>
-          <div className="flex items-center gap-2 mt-3">
-            {department && (
-              <span className={`text-[10px] px-2 py-0.5 rounded-full border ${deptColor.border} ${deptColor.text}`}>
-                {department}
-              </span>
-            )}
-            {location && (
-              <span className="text-[10px] text-white/40 truncate">📍 {location}</span>
-            )}
-          </div>
+          <p className="font-semibold text-xs text-white truncate max-w-full">{name}</p>
+          {title && (
+            <p className="text-[10px] text-white/60 truncate max-w-full">{title}</p>
+          )}
+          {department && !isCircle && (
+            <span className={`text-[9px] px-2 py-0.5 rounded-full border ${deptColor.border} ${deptColor.text} mt-1`}>
+              {department}
+            </span>
+          )}
           {bio && (
-            <p className="text-[10px] text-white/30 mt-2 italic">Click to see bio →</p>
+            <p className="text-[9px] text-white/25 mt-1">tap to flip</p>
           )}
         </div>
 
         {/* Back */}
         <div
-          className={`w-[220px] rounded-xl border ${deptColor.border} ${deptColor.bg} p-4 backdrop-blur-sm absolute top-0 left-0`}
-          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+          className={`${shape.width} ${deptColor.bg} backdrop-blur-sm flex flex-col items-center justify-center text-center absolute top-0 left-0 ${
+            isCircle ? "aspect-square rounded-full" : useClipPath ? "" : "rounded-2xl"
+          }`}
+          style={{
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            ...(useClipPath ? { clipPath: shape.clipPath } : {}),
+            padding: isCircle ? "20px" : useClipPath ? "30px 16px" : "16px",
+            boxShadow: `0 0 0 2px ${tier === "executive" ? "rgba(251,191,36,0.4)" : tier === "vp" ? "rgba(168,85,247,0.4)" : "rgba(255,255,255,0.1)"}`,
+          }}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className={`h-7 w-7 rounded-full ${deptColor.border} border flex items-center justify-center text-xs font-bold ${deptColor.text}`}
-            >
-              {getInitials(name)}
-            </div>
-            <p className="font-semibold text-sm text-white truncate">{name}</p>
-          </div>
+          <p className="font-semibold text-xs text-white mb-1">{name}</p>
           {bio ? (
-            <p className="text-xs text-white/70 leading-relaxed">{bio}</p>
+            <p className="text-[10px] text-white/70 leading-relaxed line-clamp-4">{bio}</p>
           ) : (
-            <p className="text-xs text-white/40 italic">No bio available</p>
+            <p className="text-[10px] text-white/40 italic">No bio</p>
           )}
-          <p className="text-[10px] text-white/30 mt-3 italic">Click to flip back →</p>
+          <p className="text-[9px] text-white/25 mt-1">tap to flip back</p>
         </div>
       </div>
 
