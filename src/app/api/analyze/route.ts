@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const { csvString } = body;
+    const { csvString, totalRows: clientTotalRows } = body;
 
     if (!csvString || typeof csvString !== "string") {
       return NextResponse.json(
@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse CSV
+    // Parse CSV (may be truncated — client sends first 100 rows for analysis)
     const parsed = parseCsvString(csvString);
+    const actualTotalRows = clientTotalRows || parsed.totalRows;
 
     if (parsed.headers.length === 0 || parsed.totalRows === 0) {
       return NextResponse.json(
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     const config = await analyzeCsvWithGemini(
       parsed.headers,
       parsed.rows,
-      parsed.totalRows
+      actualTotalRows
     );
 
     return NextResponse.json({

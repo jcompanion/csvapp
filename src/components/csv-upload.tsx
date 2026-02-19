@@ -35,10 +35,15 @@ export function CsvUpload({ onAnalyzed }: CsvUploadProps) {
         setLoadingMessage(messages[msgIdx]);
       }, 1500);
 
+      // Truncate CSV for AI analysis — only send headers + first 100 rows
+      // Full data stays client-side for rendering
+      const lines = csvString.split("\n");
+      const truncatedCsv = lines.slice(0, 101).join("\n"); // header + 100 rows
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csvString }),
+        body: JSON.stringify({ csvString: truncatedCsv, totalRows: lines.length - 1 }),
       });
 
       clearInterval(interval);
