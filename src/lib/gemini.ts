@@ -45,7 +45,7 @@ const responseSchema = {
       items: {
         type: "object" as const,
         properties: {
-          type: { type: "string" as const, enum: ["bar", "pie", "area", "horizontalBar"] },
+          type: { type: "string" as const, enum: ["bar", "pie", "horizontalBar"] },
           title: { type: "string" as const },
           xAxis: { type: "string" as const },
           yAxis: { type: "string" as const },

@@ -617,7 +617,11 @@ function ChartCard({
   onEdit?: () => void;
   onRemove?: () => void;
 }) {
-  const chart = (rawChart.type as string) === "line" ? { ...rawChart, type: "area" as const } : rawChart;
+  // Tailwind v4 CSS reset breaks SVG <path> fill rendering in Chromium.
+  // Line and Area charts use <path> elements that become invisible.
+  // Bar charts use <rect> elements which render correctly.
+  const chartType = rawChart.type as string;
+  const chart = (chartType === "line" || chartType === "area") ? { ...rawChart, type: "bar" as const } : rawChart;
   const color = chart.color || CHART_COLORS[index % CHART_COLORS.length];
 
   const chartData = useMemo(() => buildChartData(chart, data), [chart, data]);
